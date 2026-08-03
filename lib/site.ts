@@ -12,12 +12,16 @@
  * Prefer `SITE_URL` (server runtime — changeable per container without rebuild)
  * then `NEXT_PUBLIC_SITE_URL` (build-time). Must be the HTTPS origin scrapers
  * can fetch; a wrong host yields title/description without a preview image.
+ *
+ * Neutral localhost fallback only when both env vars are unset (local DX /
+ * metadataBase at build). Deployments must set `SITE_URL` or
+ * `NEXT_PUBLIC_SITE_URL`.
  */
 function resolveSiteUrl(): string {
   const raw =
     process.env.SITE_URL?.trim() ||
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    "https://arzaq-frontend-rcph7r-5988c7-185-97-144-33.sslip.io";
+    "http://localhost:3000";
   return raw.replace(/\/$/, "");
 }
 

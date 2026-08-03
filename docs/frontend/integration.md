@@ -5,8 +5,8 @@
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `SITE_URL` | *(unset)* | Runtime public origin (preferred for containers). Drives metadataBase, canonicals, sitemap, `og:image` |
-| `NEXT_PUBLIC_SITE_URL` | `https://arzaq.com.kw` (code fallback) | Build-time public origin; used when `SITE_URL` is unset |
-| `NEXT_PUBLIC_API_URL` | `""` | API origin; used only when mocks are off |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` (code fallback) | Build-time public origin; used when `SITE_URL` is unset |
+| `NEXT_PUBLIC_API_URL` | `""` | API origin; used only when mocks are off (required then) |
 | `NEXT_PUBLIC_MOCK_MODE` | *(unset)* | Preferred switch: `true` \| `false` |
 | `NEXT_PUBLIC_USE_MOCKS` | `true` | Legacy alias — still supported |
 | `NEXT_PUBLIC_MOCK_DELAY` | `350` | Mock latency (ms) |
@@ -14,11 +14,13 @@
 
 ### Mock mode resolution
 
-Mocks are **on** unless explicitly disabled:
+Mocks are **on** unless explicitly disabled. `NEXT_PUBLIC_API_URL` never overrides mock mode.
 
 1. If `NEXT_PUBLIC_MOCK_MODE` is set → use it (`"false"` disables).
 2. Else if `NEXT_PUBLIC_USE_MOCKS` is set → use it (`"false"` disables).
 3. Else → mocks **on** (local DX with no `.env`).
+
+When mocks are off, `NEXT_PUBLIC_API_URL` must be set or requests throw.
 
 ```bash
 # Local (default)

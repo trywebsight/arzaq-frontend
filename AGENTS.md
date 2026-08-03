@@ -71,7 +71,9 @@ right-to-left; the browser has done the mirroring for you.
 ## Data layer
 
 - `lib/api/client.ts` is the only file that knows where data comes from.
-  Swapping to a real backend is `NEXT_PUBLIC_API_URL` + `NEXT_PUBLIC_USE_MOCKS=false`.
+  Swapping to a real backend is `NEXT_PUBLIC_API_URL` +
+  `NEXT_PUBLIC_MOCK_MODE=false` (legacy: `NEXT_PUBLIC_USE_MOCKS=false`).
+  Mock mode wins when true even if the API URL is set.
 - Use the `queryOptions()` factories in `features/*/queries.ts` on both sides
   (server prefetch and `useQuery`) so keys match exactly. Never inline a key.
 - Sections must render all five states through `<QueryState>`:

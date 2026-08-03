@@ -188,6 +188,12 @@ async function fetchReal<T>(
 ): Promise<T> {
   const { search } = toQuery(init?.searchParams);
   const base = resolveApiBaseUrl();
+  if (!base) {
+    throw new ApiError(
+      "NEXT_PUBLIC_API_URL is unset while mock mode is off. Set the API origin or enable NEXT_PUBLIC_MOCK_MODE=true.",
+      { status: 500, path },
+    );
+  }
   const url = `${base}${path}${search}`;
 
   const headers = apiDefaultHeaders(init?.headers);
