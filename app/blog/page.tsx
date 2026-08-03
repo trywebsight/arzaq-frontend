@@ -11,7 +11,8 @@ import {
   shouldPrefetch,
 } from "@/lib/api/mock-state";
 import { getQueryClient } from "@/lib/query/get-query-client";
-import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 
 type BlogPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -23,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
     getTranslations("BlogPage"),
   ]);
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata("blog", {
     title: tBlog("meta.title"),
     description: tBlog("meta.description"),
     path: "/blog",

@@ -5,19 +5,20 @@ import { getTranslations } from "next-intl/server";
 import { OptOutCta } from "@/components/layout";
 import { JsonLd } from "@/components/seo";
 import { PrivacySection } from "@/features/privacy";
-import { fetchLegalDocument } from "@/features/legal/api";
+import { fetchLegalDocumentSafe } from "@/features/legal/api";
 import { legalDocumentQuery } from "@/features/legal/queries";
 import { getQueryClient } from "@/lib/query/get-query-client";
-import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [tMeta, tLegal, doc] = await Promise.all([
     getTranslations("Meta"),
     getTranslations("LegalPage"),
-    fetchLegalDocument("privacy"),
+    fetchLegalDocumentSafe("privacy"),
   ]);
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata("privacy", {
     title: doc?.metaTitle || doc?.title || tLegal("privacy.meta.title"),
     description:
       doc?.metaDescription || tLegal("privacy.meta.description"),
@@ -36,7 +37,7 @@ export default async function PrivacyPage() {
   const [tNav, tLegal, doc] = await Promise.all([
     getTranslations("Nav"),
     getTranslations("LegalPage"),
-    fetchLegalDocument("privacy"),
+    fetchLegalDocumentSafe("privacy"),
   ]);
 
   queryClient.setQueryData(legalDocumentQuery("privacy").queryKey, doc);

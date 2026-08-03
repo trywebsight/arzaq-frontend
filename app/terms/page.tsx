@@ -4,19 +4,20 @@ import { getTranslations } from "next-intl/server";
 
 import { JsonLd } from "@/components/seo";
 import { TermsContent } from "@/features/terms";
-import { fetchLegalDocument } from "@/features/legal/api";
+import { fetchLegalDocumentSafe } from "@/features/legal/api";
 import { legalDocumentQuery } from "@/features/legal/queries";
 import { getQueryClient } from "@/lib/query/get-query-client";
-import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [tMeta, tLegal, doc] = await Promise.all([
     getTranslations("Meta"),
     getTranslations("LegalPage"),
-    fetchLegalDocument("terms"),
+    fetchLegalDocumentSafe("terms"),
   ]);
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata("terms", {
     title: doc?.metaTitle || doc?.title || tLegal("terms.meta.title"),
     description: doc?.metaDescription || tLegal("terms.meta.description"),
     path: "/terms",
@@ -35,7 +36,7 @@ export default async function TermsPage() {
   const [tNav, tLegal, doc] = await Promise.all([
     getTranslations("Nav"),
     getTranslations("LegalPage"),
-    fetchLegalDocument("terms"),
+    fetchLegalDocumentSafe("terms"),
   ]);
 
   queryClient.setQueryData(legalDocumentQuery("terms").queryKey, doc);

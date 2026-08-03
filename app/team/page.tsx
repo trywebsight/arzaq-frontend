@@ -5,7 +5,8 @@ import { getTranslations } from "next-intl/server";
 import { JsonLd } from "@/components/seo";
 import { TeamListing } from "@/features/team/team-listing";
 import { prefetchTeamQueries } from "@/lib/query/prefetch";
-import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 
 type TeamPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -14,7 +15,7 @@ type TeamPageProps = {
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Meta");
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata("team", {
     title: t("team.title"),
     description: t("team.description"),
     path: "/team",

@@ -9,7 +9,8 @@ import {
   ServicesIntroSection,
 } from "@/features/services";
 import { prefetchServicesQueries } from "@/lib/query/prefetch";
-import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 
 type ServicesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
     getTranslations("ServicesPage"),
   ]);
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata("services", {
     title: tPage("meta.title"),
     description: tPage("meta.description"),
     path: "/services",

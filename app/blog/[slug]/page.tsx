@@ -14,10 +14,11 @@ import {
 import {
   articleJsonLd,
   breadcrumbJsonLd,
-  buildPageMetadata,
   ogImagesFromAsset,
 } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 import { getQueryClient } from "@/lib/query/get-query-client";
+import { OG_SIZE } from "@/lib/og";
 
 type ArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -65,7 +66,7 @@ export async function generateMetadata({
     };
   }
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata(`posts:${post.slug}`, {
     title: post.title,
     description: post.excerpt,
     path: `/blog/${post.slug}`,
@@ -73,9 +74,16 @@ export async function generateMetadata({
     type: "article",
     publishedTime: post.publishedAt,
     ogImageAlt: tMeta("ogImageAlt"),
-    ...(post.image
-      ? { images: ogImagesFromAsset(post.image, post.title) }
-      : {}),
+    images: ogImagesFromAsset(
+      {
+        src: `/blog/${post.slug}/opengraph-image`,
+        width: OG_SIZE.width,
+        height: OG_SIZE.height,
+        alt: post.title,
+        type: "image/png",
+      },
+      post.title,
+    ),
   });
 }
 

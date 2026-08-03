@@ -11,7 +11,8 @@ import {
 } from "@/features/about";
 import { TeamSection } from "@/features/team/team-section";
 import { prefetchAboutQueries } from "@/lib/query/prefetch";
-import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 
 type AboutPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -23,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
     getTranslations("AboutPage"),
   ]);
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata("about", {
     title: tAbout("meta.title"),
     description: tAbout("meta.description"),
     path: "/about",

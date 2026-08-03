@@ -13,11 +13,12 @@ import {
 } from "@/lib/api/mock-state";
 import {
   breadcrumbJsonLd,
-  buildPageMetadata,
   ogImagesFromAsset,
   propertyJsonLd,
 } from "@/lib/seo";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
 import { getQueryClient } from "@/lib/query/get-query-client";
+import { OG_SIZE } from "@/lib/og";
 type PropertyPageProps = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -61,15 +62,22 @@ export async function generateMetadata({
     };
   }
 
-  return buildPageMetadata({
+  return buildSeoPageMetadata(`properties:${property.slug}`, {
     title: property.title,
     description: property.excerpt,
     path: `/properties/${property.slug}`,
     siteName: tMeta("siteName"),
     ogImageAlt: tMeta("ogImageAlt"),
-    ...(property.image
-      ? { images: ogImagesFromAsset(property.image, property.title) }
-      : {}),
+    images: ogImagesFromAsset(
+      {
+        src: `/properties/${property.slug}/opengraph-image`,
+        width: OG_SIZE.width,
+        height: OG_SIZE.height,
+        alt: property.title,
+        type: "image/png",
+      },
+      property.title,
+    ),
   });
 }
 

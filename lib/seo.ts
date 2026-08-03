@@ -3,6 +3,7 @@ import { connection } from "next/server";
 
 import type { Post } from "@/features/blog/types";
 import type { Property } from "@/features/properties/types";
+import { readingMinutesFromSections } from "@/lib/reading-time";
 import { CONTACT, SOCIAL_LINKS, siteConfig } from "@/lib/site";
 
 /** Join `siteConfig.url` with a path, normalising slashes. */
@@ -16,8 +17,11 @@ export function absoluteUrl(path = "/"): string {
 export type RealEstateAgentInput = {
   name: string;
   description: string;
-  /** Street address from Footer.contact.address. */
+  /** Street address from Footer.contact.address or settings. */
   address: string;
+  email?: string;
+  telephone?: string;
+  sameAs?: readonly string[];
 };
 
 /**
@@ -32,8 +36,8 @@ export function realEstateAgentJsonLd(input: RealEstateAgentInput) {
     name: input.name,
     description: input.description,
     url: absoluteUrl(),
-    email: CONTACT.email,
-    telephone: CONTACT.phone,
+    email: input.email ?? CONTACT.email,
+    telephone: input.telephone ?? CONTACT.phone,
     address: {
       "@type": "PostalAddress",
       streetAddress: input.address,
@@ -44,7 +48,7 @@ export function realEstateAgentJsonLd(input: RealEstateAgentInput) {
       "@type": "Country",
       name: "Kuwait",
     },
-    sameAs: SOCIAL_LINKS.map((link) => link.href),
+    sameAs: [...(input.sameAs ?? SOCIAL_LINKS.map((link) => link.href))],
   };
 }
 
@@ -212,7 +216,7 @@ export function articleJsonLd(post: Post, publisherName: string) {
       name: publisherName,
       url: absoluteUrl(),
     },
-    timeRequired: `PT${post.readingMinutes}M`,
+    timeRequired: `PT${readingMinutesFromSections(post)}M`,
   };
 }
 
@@ -278,12 +282,15 @@ export type PageMetadataInput = {
   siteName: string;
   type?: "website" | "article";
   /**
-   * OG/Twitter images. When omitted, the brand `/opengraph-image` is used so
-   * page-level `openGraph` objects never drop the default card.
+   * OG/Twitter images. When omitted, the brand `/og.png` card is used.
+   * Pass `false` to omit images from metadata so a segment-level
+   * `opengraph-image` file convention can supply the card instead.
    */
-  images?: NonNullable<Metadata["openGraph"]> extends { images?: infer I }
-    ? I
-    : never;
+  images?:
+    | (NonNullable<Metadata["openGraph"]> extends { images?: infer I }
+        ? I
+        : never)
+    | false;
   /** Alt text for the default brand OG image when `images` is omitted. */
   ogImageAlt?: string;
   publishedTime?: string;
@@ -291,7 +298,7 @@ export type PageMetadataInput = {
 };
 
 function twitterImageUrls(
-  images: NonNullable<PageMetadataInput["images"]>,
+  images: Exclude<NonNullable<PageMetadataInput["images"]>, false>,
 ): string[] {
   if (typeof images === "string") return [images];
   if (images instanceof URL) return [images.href];
@@ -335,9 +342,11 @@ export async function buildPageMetadata(
   const url = absoluteUrl(input.path);
   const ogType = input.type ?? "website";
   const images =
-    input.images ??
-    defaultOgImages(input.ogImageAlt ?? input.siteName);
-  const twitterImages = twitterImageUrls(images);
+    input.images === false
+      ? undefined
+      : (input.images ??
+        defaultOgImages(input.ogImageAlt ?? input.siteName));
+  const twitterImages = images ? twitterImageUrls(images) : undefined;
 
   return {
     title: input.title,
@@ -351,7 +360,7 @@ export async function buildPageMetadata(
       title: input.title,
       description: input.description,
       url,
-      images,
+      ...(images ? { images } : {}),
       ...(input.publishedTime && ogType === "article"
         ? { publishedTime: input.publishedTime }
         : {}),
@@ -360,7 +369,7 @@ export async function buildPageMetadata(
       card: "summary_large_image",
       title: input.title,
       description: input.description,
-      images: twitterImages,
+      ...(twitterImages ? { images: twitterImages } : {}),
     },
   };
 }
