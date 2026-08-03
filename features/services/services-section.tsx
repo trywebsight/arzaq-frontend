@@ -36,12 +36,23 @@ function ServicesSkeleton() {
   );
 }
 
+export type ServicesSectionProps = {
+  /** Max services to show. @default 2 */
+  limit?: number;
+  className?: string;
+};
+
 /**
  * Home services block: section header plus a QueryState-driven ServiceCard grid.
+ *
+ * @param limit - Cap from `GET /home` servicesLimit when wired.
  */
-export function ServicesSection({ className }: { className?: string }) {
+export function ServicesSection({
+  limit = 2,
+  className,
+}: ServicesSectionProps) {
   const t = useTranslations("Services");
-  const query = useServices({ limit: 2 });
+  const query = useServices({ limit });
 
   return (
     <Section

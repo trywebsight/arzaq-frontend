@@ -73,6 +73,7 @@ export const EMPTY_HOME_CONTENT: HomeContent = {
   aboutTeaser: null,
   featuredPropertyLimit: 3,
   latestPostsLimit: 3,
-  servicesLimit: 4,
+  /** Matches the home services two-card composition. */
+  servicesLimit: 2,
   teamLimit: 6,
 };

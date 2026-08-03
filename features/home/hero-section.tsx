@@ -4,17 +4,32 @@ import { useTranslations } from "next-intl";
 
 import { Container, Eyebrow, SmartImage } from "@/components/common";
 import { CountUp, Reveal, SplitHeading } from "@/components/motion";
-import { assets } from "@/lib/assets";
-import { HERO_STATS, SECTION_IDS } from "@/lib/site";
+import { useHomeContent, useSettings } from "@/features/settings/hooks";
+import {
+  resolveHeroStats,
+  resolveHomeHero,
+} from "@/features/settings/merge";
+import { SECTION_IDS } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 /**
  * Home hero: full-bleed photography on mobile; white page frame + rounded
  * media from `md` up. SplitText headline and CountUp stats sit at the
  * bottom; RTL places the heading at inline-start without reverse helpers.
+ *
+ * Copy / image / stats prefer `GET /home` + `GET /settings` when present,
+ * otherwise `messages` + `HERO_STATS`.
  */
 export function HeroSection({ className }: { className?: string }) {
   const t = useTranslations("Hero");
+  const settingsQuery = useSettings();
+  const homeQuery = useHomeContent();
+
+  const hero = resolveHomeHero(homeQuery.data);
+  const stats = resolveHeroStats(settingsQuery.data);
+  const eyebrow = hero.eyebrow ?? t("eyebrow");
+  const title = hero.title ?? t("title");
+  const imageAlt = hero.imageAlt ?? t("imageAlt");
 
   return (
     <section
@@ -35,12 +50,13 @@ export function HeroSection({ className }: { className?: string }) {
         )}
       >
         <SmartImage
-          src={assets.hero.src}
-          alt={t("imageAlt")}
+          src={hero.image.src}
+          alt={imageAlt}
           priority
           fill
           sizes="100vw"
           quality={70}
+          blurDataURL={hero.image.blurDataURL}
           className="object-cover object-center"
         />
 
@@ -64,7 +80,7 @@ export function HeroSection({ className }: { className?: string }) {
             <div className="min-w-0 max-w-2xl text-start">
               <Reveal as="div" from="bottom" distance={14} trigger="mount">
                 <Eyebrow tone="white" className="mb-4">
-                  {t("eyebrow")}
+                  {eyebrow}
                 </Eyebrow>
               </Reveal>
 
@@ -74,12 +90,12 @@ export function HeroSection({ className }: { className?: string }) {
                 trigger="mount"
                 className="text-4xl/[1.35] font-bold text-balance text-white md:text-5xl xl:text-6xl "
               >
-                {t("title")}
+                {title}
               </SplitHeading>
             </div>
 
             <ul className="flex w-full shrink-0 flex-row gap-3 text-start sm:gap-8 md:w-auto md:gap-12">
-              {HERO_STATS.map((stat, index) => (
+              {stats.map((stat, index) => (
                 <li key={stat.key} className="min-w-0 flex-1 md:flex-none md:min-w-30">
                   <Reveal
                     as="div"
@@ -96,7 +112,10 @@ export function HeroSection({ className }: { className?: string }) {
                       className="block text-3xl/[1.2] font-bold text-white sm:text-4xl md:text-5xl "
                     />
                     <p className="mt-1 text-xs/snug text-pretty text-white/75 sm:mt-1.5 sm:max-w-44 sm:text-sm/relaxed md:text-base  ">
-                      {t(`stats.${stat.key}.label`)}
+                      {stat.label ??
+                        (t.has(`stats.${stat.key}.label`)
+                          ? t(`stats.${stat.key}.label`)
+                          : "")}
                     </p>
                   </Reveal>
                 </li>

@@ -3,23 +3,22 @@ import { HydrationBoundary } from "@tanstack/react-query";
 import { getTranslations } from "next-intl/server";
 
 import { JsonLd } from "@/components/seo";
-import { LatestArticles } from "@/features/blog/latest-articles";
-import {
-  AboutSection,
-  HeroSection,
-  ServicesSection,
-} from "@/features/home/sections";
+import { HomePageContent } from "@/features/home/home-page-content";
 import { fetchProperties } from "@/features/properties/api";
-import { FeaturedProperties } from "@/features/properties/featured-properties";
 import type { Property } from "@/features/properties/types";
-import { TeamSection } from "@/features/team/team-section";
+import { buildSeoPageMetadata } from "@/features/seo/merge";
+import {
+  resolveContact,
+  resolveHomeLimits,
+  resolveSocials,
+} from "@/features/settings/merge";
+import { getHomeContent, getSiteSettings } from "@/features/settings/server";
 import {
   mockStateFromSearchParams,
   shouldPrefetch,
 } from "@/lib/api/mock-state";
 import { prefetchHomeQueries } from "@/lib/query/prefetch";
 import {
-  buildPageMetadata,
   featuredPropertiesItemListJsonLd,
   realEstateAgentJsonLd,
   webSiteJsonLd,
@@ -31,12 +30,13 @@ type HomePageProps = {
 
 async function featuredForJsonLd(
   searchParams: Record<string, string | string[] | undefined>,
+  limit: number,
 ): Promise<Property[]> {
   if (!shouldPrefetch(mockStateFromSearchParams(searchParams))) {
     return [];
   }
   try {
-    return await fetchProperties({ featured: true, limit: 3 });
+    return await fetchProperties({ featured: true, limit });
   } catch {
     return [];
   }
@@ -44,17 +44,20 @@ async function featuredForJsonLd(
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Meta");
+  const meta = await buildSeoPageMetadata("home", {
+    title: t("title"),
+    description: t("description"),
+    path: "/",
+    siteName: t("siteName"),
+    ogImageAlt: t("ogImageAlt"),
+  });
+  const absoluteTitle =
+    typeof meta.title === "string" ? meta.title : t("title");
 
   return {
-    ...(await buildPageMetadata({
-      title: t("title"),
-      description: t("description"),
-      path: "/",
-      siteName: t("siteName"),
-      ogImageAlt: t("ogImageAlt"),
-    })),
+    ...meta,
     // Default Meta.title already includes the brand — skip the template.
-    title: { absolute: t("title") },
+    title: { absolute: absoluteTitle },
   };
 }
 
@@ -64,14 +67,24 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
-  const [dehydratedState, properties, tMeta, tFooter, tProperties] =
+  const [dehydratedState, settings, home, tMeta, tFooter, tProperties] =
     await Promise.all([
       prefetchHomeQueries(params),
-      featuredForJsonLd(params),
+      getSiteSettings(),
+      getHomeContent(),
       getTranslations("Meta"),
       getTranslations("Footer"),
       getTranslations("Properties"),
     ]);
+
+  const limits = resolveHomeLimits(home);
+  const contact = resolveContact(settings);
+  const socials = resolveSocials(settings);
+  const address = contact.address?.trim() || tFooter("contact.address");
+  const properties = await featuredForJsonLd(
+    params,
+    limits.featuredPropertyLimit,
+  );
 
   return (
     <>
@@ -80,7 +93,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           realEstateAgentJsonLd({
             name: tMeta("siteName"),
             description: tMeta("description"),
-            address: tFooter("contact.address"),
+            address,
+            email: contact.email,
+            telephone: contact.phone,
+            sameAs: socials.map((link) => link.href),
           }),
           webSiteJsonLd({
             name: tMeta("siteName"),
@@ -91,12 +107,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       />
       <HydrationBoundary state={dehydratedState}>
         <main id="main" className="flex-1" tabIndex={-1}>
-          <HeroSection />
-          <AboutSection />
-          <FeaturedProperties />
-          <ServicesSection />
-          <TeamSection />
-          <LatestArticles />
+          <HomePageContent />
         </main>
       </HydrationBoundary>
     </>

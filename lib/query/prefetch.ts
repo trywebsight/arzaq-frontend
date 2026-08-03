@@ -6,8 +6,15 @@ import {
   shouldPrefetch,
 } from "@/lib/api/mock-state";
 import { latestPostsQuery } from "@/features/blog/queries";
+import { faqsQuery } from "@/features/contact/faq-queries";
 import { featuredPropertiesQuery } from "@/features/properties/queries";
 import { servicesQuery } from "@/features/services/queries";
+import {
+  homeContentQuery,
+  settingsQuery,
+} from "@/features/settings/queries";
+import { resolveHomeLimits } from "@/features/settings/merge";
+import { EMPTY_HOME_CONTENT } from "@/features/settings/types";
 import { teamQuery } from "@/features/team/queries";
 
 /**
@@ -32,10 +39,22 @@ export async function prefetchHomeQueries(
 
   if (shouldPrefetch(mockState)) {
     await Promise.all([
-      queryClient.prefetchQuery(featuredPropertiesQuery(3)),
-      queryClient.prefetchQuery(servicesQuery({ limit: 2 })),
-      queryClient.prefetchQuery(teamQuery()),
-      queryClient.prefetchQuery(latestPostsQuery()),
+      queryClient.prefetchQuery(settingsQuery()),
+      queryClient.prefetchQuery(homeContentQuery()),
+    ]);
+
+    const home =
+      queryClient.getQueryData(homeContentQuery().queryKey) ??
+      EMPTY_HOME_CONTENT;
+    const limits = resolveHomeLimits(home);
+
+    await Promise.all([
+      queryClient.prefetchQuery(
+        featuredPropertiesQuery(limits.featuredPropertyLimit),
+      ),
+      queryClient.prefetchQuery(servicesQuery({ limit: limits.servicesLimit })),
+      queryClient.prefetchQuery(teamQuery({ limit: limits.teamLimit })),
+      queryClient.prefetchQuery(latestPostsQuery(limits.latestPostsLimit)),
     ]);
   }
 
@@ -43,7 +62,7 @@ export async function prefetchHomeQueries(
 }
 
 /**
- * Warm the team query for the About page and return dehydrated state.
+ * Warm the team + settings queries for the About page.
  *
  * @example
  * const state = await prefetchAboutQueries(await searchParams);
@@ -55,7 +74,10 @@ export async function prefetchAboutQueries(
   const mockState = mockStateFromSearchParams(searchParams);
 
   if (shouldPrefetch(mockState)) {
-    await queryClient.prefetchQuery(teamQuery());
+    await Promise.all([
+      queryClient.prefetchQuery(teamQuery()),
+      queryClient.prefetchQuery(settingsQuery()),
+    ]);
   }
 
   return dehydrate(queryClient);
@@ -94,6 +116,25 @@ export async function prefetchServicesQueries(
 
   if (shouldPrefetch(mockState)) {
     await queryClient.prefetchQuery(servicesQuery());
+  }
+
+  return dehydrate(queryClient);
+}
+
+/**
+ * Warm FAQ query for the Contact page.
+ *
+ * @example
+ * const state = await prefetchContactQueries(await searchParams);
+ */
+export async function prefetchContactQueries(
+  searchParams?: Record<string, string | string[] | undefined>,
+): Promise<DehydratedState> {
+  const queryClient = getQueryClient();
+  const mockState = mockStateFromSearchParams(searchParams);
+
+  if (shouldPrefetch(mockState)) {
+    await queryClient.prefetchQuery(faqsQuery());
   }
 
   return dehydrate(queryClient);

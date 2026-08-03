@@ -20,7 +20,9 @@ import {
   type LegalDocumentSlug,
   type LegalSection,
 } from "@/features/legal/types";
-import { CONTACT, siteConfig } from "@/lib/site";
+import { siteConfig } from "@/lib/site";
+import { useSettings } from "@/features/settings/hooks";
+import { resolveContact } from "@/features/settings/merge";
 import { cn } from "@/lib/utils";
 
 function formatUpdatedDate(isoDate: string): string {
@@ -32,13 +34,16 @@ function formatUpdatedDate(isoDate: string): string {
   }).format(new Date(`${isoDate}T12:00:00`));
 }
 
-function resolveContact(doc: LegalDocument) {
+function resolveLegalContact(
+  doc: LegalDocument,
+  settingsContact: ReturnType<typeof resolveContact>,
+) {
   const siteUrl = (doc.contact?.websiteUrl ?? siteConfig.url).replace(/\/$/, "");
   return {
-    email: doc.contact?.email ?? CONTACT.email,
-    emailHref: doc.contact?.emailHref ?? CONTACT.emailHref,
-    phone: doc.contact?.phone ?? CONTACT.phone,
-    phoneHref: doc.contact?.phoneHref ?? CONTACT.phoneHref,
+    email: doc.contact?.email ?? settingsContact.email,
+    emailHref: doc.contact?.emailHref ?? settingsContact.emailHref,
+    phone: doc.contact?.phone ?? settingsContact.phone,
+    phoneHref: doc.contact?.phoneHref ?? settingsContact.phoneHref,
     websiteUrl: siteUrl,
     displayHost: siteUrl.replace(/^https?:\/\//, ""),
   };
@@ -51,7 +56,8 @@ function LegalBlocks({
   blocks: LegalBlock[];
   doc: LegalDocument;
 }) {
-  const contact = resolveContact(doc);
+  const settingsQuery = useSettings();
+  const contact = resolveLegalContact(doc, resolveContact(settingsQuery.data));
 
   return (
     <div className="mt-3 space-y-3 md:mt-4 md:space-y-4">

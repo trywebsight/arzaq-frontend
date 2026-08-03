@@ -6,12 +6,15 @@ import { Container } from "@/components/common/container";
 import { HapticLink } from "@/components/common/haptic-link";
 import { SmartImage } from "@/components/common/smart-image";
 import { Button } from "@/components/ui/button";
+import { getSiteSettings } from "@/features/settings/server";
+import {
+  resolveContact,
+  resolveSocials,
+} from "@/features/settings/merge";
 import { assets } from "@/lib/assets";
 import {
-  CONTACT,
   FOOTER_LINK_COLUMNS,
   LEGAL_LINKS,
-  SOCIAL_LINKS,
   type SocialKey,
 } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -69,10 +72,18 @@ const SOCIAL_ICONS: Record<SocialKey, ComponentType<{ className?: string }>> = {
 
 /**
  * Site footer — brand, two link columns, contact, legal row.
+ * Contact / socials prefer `GET /settings` when present.
  */
 export async function Footer({ className }: { className?: string }) {
-  const t = await getTranslations("Footer");
-  const tNav = await getTranslations("Nav");
+  const [t, tNav, settings] = await Promise.all([
+    getTranslations("Footer"),
+    getTranslations("Nav"),
+    getSiteSettings(),
+  ]);
+
+  const contact = resolveContact(settings);
+  const socials = resolveSocials(settings);
+  const address = contact.address?.trim() || t("contact.address");
 
   return (
     <footer
@@ -96,7 +107,7 @@ export async function Footer({ className }: { className?: string }) {
               className="flex items-center gap-2"
               aria-label={t("socialsLabel")}
             >
-              {SOCIAL_LINKS.map((social) => {
+              {socials.map((social) => {
                 const Icon = SOCIAL_ICONS[social.key];
                 return (
                   <li key={social.key}>
@@ -146,31 +157,29 @@ export async function Footer({ className }: { className?: string }) {
             <ul className="flex flex-col gap-3 text-sm text-ink-muted">
               <li>
                 <span className="sr-only">{t("contact.addressLabel")}</span>
-                <p className="text-pretty leading-relaxed">
-                  {t("contact.address")}
-                </p>
+                <p className="text-pretty leading-relaxed">{address}</p>
               </li>
               <li>
                 <HapticLink
-                  href={CONTACT.emailHref}
+                  href={contact.emailHref}
                   className="inline-flex items-center gap-2 transition-colors hover:text-ink"
                 >
                   <Mail className="size-4 shrink-0" aria-hidden />
                   <span>
                     <span className="sr-only">{t("contact.emailLabel")}: </span>
-                    {CONTACT.email}
+                    {contact.email}
                   </span>
                 </HapticLink>
               </li>
               <li>
                 <HapticLink
-                  href={CONTACT.phoneHref}
+                  href={contact.phoneHref}
                   className="inline-flex items-center gap-2 transition-colors hover:text-ink"
                 >
                   <Phone className="size-4 shrink-0" aria-hidden />
                   <span>
                     <span className="sr-only">{t("contact.phoneLabel")}: </span>
-                    {CONTACT.phone}
+                    {contact.phone}
                   </span>
                 </HapticLink>
               </li>

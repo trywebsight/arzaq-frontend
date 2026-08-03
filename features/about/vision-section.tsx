@@ -4,16 +4,19 @@ import { useTranslations } from "next-intl";
 
 import { Eyebrow, Section } from "@/components/common";
 import { CountUp, Reveal } from "@/components/motion";
-import { HERO_STATS } from "@/lib/site";
+import { useSettings } from "@/features/settings/hooks";
+import { resolveHeroStats } from "@/features/settings/merge";
 import { cn } from "@/lib/utils";
 
 /**
  * Vision block: muted band with eyebrow, stacked heading/body, and a
- * three-column HERO_STATS row — type scale kept moderate across breakpoints.
+ * three-column stats row — values prefer `GET /settings` heroStats.
  */
 export function AboutVisionSection({ className }: { className?: string }) {
   const t = useTranslations("AboutPage.vision");
   const tStats = useTranslations("Hero.stats");
+  const settingsQuery = useSettings();
+  const stats = resolveHeroStats(settingsQuery.data);
 
   return (
     <Section
@@ -44,7 +47,7 @@ export function AboutVisionSection({ className }: { className?: string }) {
       </div>
 
       <ul className="mt-8 grid grid-cols-3 gap-3 sm:gap-6 md:mt-10 md:gap-10">
-        {HERO_STATS.map((stat, index) => (
+        {stats.map((stat, index) => (
           <li key={stat.key} className="min-w-0">
             <Reveal
               as="div"
@@ -58,7 +61,10 @@ export function AboutVisionSection({ className }: { className?: string }) {
                 className="block text-2xl/[1.2] font-bold text-ink sm:text-3xl md:text-4xl "
               />
               <p className="mt-1 text-xs/snug text-pretty text-ink-muted sm:mt-1.5 sm:text-sm/relaxed  ">
-                {tStats(`${stat.key}.label`)}
+                {stat.label ??
+                  (tStats.has(`${stat.key}.label`)
+                    ? tStats(`${stat.key}.label`)
+                    : "")}
               </p>
             </Reveal>
           </li>
