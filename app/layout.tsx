@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { connection } from "next/server";
 
 import "./globals.css";
 // Resolves every <BoneSkeleton> to its captured bones. No-op until
@@ -9,13 +10,20 @@ import "@/bones/registry";
 
 import { direction, htmlLang } from "@/i18n/request";
 import { fontVariables } from "@/lib/fonts";
+import {
+  DEFAULT_OG_IMAGE_PATH,
+  absoluteUrl,
+  defaultOgImages,
+} from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import { Providers } from "@/app/providers";
 import { SiteShell } from "@/components/layout/site-shell";
 
 export async function generateMetadata(): Promise<Metadata> {
+  await connection();
   const t = await getTranslations("Meta");
   const ogAlt = t("ogImageAlt");
+  const ogImages = defaultOgImages(ogAlt);
 
   return {
     metadataBase: new URL(siteConfig.url),
@@ -46,20 +54,13 @@ export async function generateMetadata(): Promise<Metadata> {
       title: t("title"),
       description: t("description"),
       url: siteConfig.url,
-      images: [
-        {
-          url: "/opengraph-image",
-          width: 1200,
-          height: 630,
-          alt: ogAlt,
-        },
-      ],
+      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title: t("title"),
       description: t("description"),
-      images: ["/opengraph-image"],
+      images: [absoluteUrl(DEFAULT_OG_IMAGE_PATH)],
     },
   };
 }

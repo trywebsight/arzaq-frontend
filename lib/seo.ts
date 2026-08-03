@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 
 import type { Post } from "@/features/blog/types";
 import type { Property } from "@/features/properties/types";
@@ -215,8 +216,11 @@ export function articleJsonLd(post: Post, publisherName: string) {
   };
 }
 
-/** App Router file route that generates the default brand OG card. */
-export const DEFAULT_OG_IMAGE_PATH = "/opengraph-image" as const;
+/**
+ * Crawler-facing brand OG card path (`.png` suffix — WhatsApp/Slack prefer it).
+ * Rewritten to the App Router `opengraph-image` generator in `next.config.ts`.
+ */
+export const DEFAULT_OG_IMAGE_PATH = "/og.png" as const;
 
 export type OgImageInput = {
   /** Site-relative path or absolute URL. */
@@ -224,11 +228,12 @@ export type OgImageInput = {
   width?: number;
   height?: number;
   alt?: string;
+  type?: string;
 };
 
 /**
  * Normalise a listing/cover (or brand) image into Metadata `openGraph.images`.
- * Relative paths resolve via `metadataBase`.
+ * Always emits an absolute URL so scrapers do not depend on relative resolution.
  */
 export function ogImagesFromAsset(
   image: OgImageInput,
@@ -240,12 +245,13 @@ export function ogImagesFromAsset(
       ...(image.width ? { width: image.width } : { width: 1200 }),
       ...(image.height ? { height: image.height } : { height: 630 }),
       alt: image.alt || fallbackAlt,
+      ...(image.type ? { type: image.type } : {}),
     },
   ];
 }
 
 /**
- * Default brand Open Graph / Twitter card (the generated `/opengraph-image`).
+ * Default brand Open Graph / Twitter card (`/og.png` → `/opengraph-image`).
  *
  * @param alt - Localised alt from `Meta.ogImageAlt`.
  */
@@ -253,7 +259,13 @@ export function defaultOgImages(
   alt: string,
 ): NonNullable<NonNullable<Metadata["openGraph"]>["images"]> {
   return ogImagesFromAsset(
-    { src: DEFAULT_OG_IMAGE_PATH, width: 1200, height: 630, alt },
+    {
+      src: DEFAULT_OG_IMAGE_PATH,
+      width: 1200,
+      height: 630,
+      alt,
+      type: "image/png",
+    },
     alt,
   );
 }
@@ -304,6 +316,9 @@ function twitterImageUrls(
 /**
  * Shared Metadata API shape for static marketing pages and dynamic details.
  *
+ * Resolves at request time so container `SITE_URL` overrides bake into
+ * `og:image` without rebuilding the image.
+ *
  * @example
  * return buildPageMetadata({
  *   title,
@@ -313,7 +328,10 @@ function twitterImageUrls(
  *   ogImageAlt: tMeta("ogImageAlt"),
  * });
  */
-export function buildPageMetadata(input: PageMetadataInput): Metadata {
+export async function buildPageMetadata(
+  input: PageMetadataInput,
+): Promise<Metadata> {
+  await connection();
   const url = absoluteUrl(input.path);
   const ogType = input.type ?? "website";
   const images =

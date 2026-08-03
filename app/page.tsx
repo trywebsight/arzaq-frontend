@@ -46,13 +46,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Meta");
 
   return {
-    ...buildPageMetadata({
+    ...(await buildPageMetadata({
       title: t("title"),
       description: t("description"),
       path: "/",
       siteName: t("siteName"),
       ogImageAlt: t("ogImageAlt"),
-    }),
+    })),
     // Default Meta.title already includes the brand — skip the template.
     title: { absolute: t("title") },
   };

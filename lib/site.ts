@@ -6,13 +6,30 @@
  * data-driven instead of hardcoding lists in JSX.
  */
 
+/**
+ * Public site origin for metadataBase, canonicals, sitemap and og:image.
+ *
+ * Prefer `SITE_URL` (server runtime — changeable per container without rebuild)
+ * then `NEXT_PUBLIC_SITE_URL` (build-time). Must be the HTTPS origin scrapers
+ * can fetch; a wrong host yields title/description without a preview image.
+ */
+function resolveSiteUrl(): string {
+  const raw =
+    process.env.SITE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    "https://arzaq.com.kw";
+  return raw.replace(/\/$/, "");
+}
+
 export const siteConfig = {
-  /** Absolute origin. Override in production via `NEXT_PUBLIC_SITE_URL`. */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://arzaq.com.kw",
-  locale: "ar",
-  ogLocale: "ar_KW",
-  direction: "rtl",
-} as const;
+  /** Absolute origin. Re-read on access so runtime `SITE_URL` applies. */
+  get url() {
+    return resolveSiteUrl();
+  },
+  locale: "ar" as const,
+  ogLocale: "ar_KW" as const,
+  direction: "rtl" as const,
+};
 
 /** Anchor ids used by the in-page navigation. Sections must render these. */
 export const SECTION_IDS = {

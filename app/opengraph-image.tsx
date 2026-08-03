@@ -9,13 +9,18 @@ import { siteConfig } from "@/lib/site";
 export const alt = ar.Meta.ogImageAlt;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+/** Bake at build so production serves a stable PNG without runtime satori work. */
+export const dynamic = "force-static";
 
 /**
  * Generated Open Graph image — brand blue field, logo mark, site name, tagline.
- * Served at `/opengraph-image` and picked up automatically by the Metadata API.
+ * Served at `/opengraph-image` and (via rewrite) `/og.png` for crawlers.
  *
  * Fonts are static Cairo TTFs under `assets/fonts/` (instanced from the
  * upstream variable font). Satori cannot consume WOFF2 or most variable fonts.
+ *
+ * Do not paint `siteConfig.url` into the bitmap — staging/production hosts
+ * differ and scrapers already get the absolute URL from `og:image` meta.
  */
 export default async function OpenGraphImage() {
   const siteName = ar.Meta.siteName;
@@ -114,17 +119,6 @@ export default async function OpenGraphImage() {
           >
             {tagline}
           </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            fontSize: 24,
-            fontWeight: 600,
-            opacity: 0.8,
-          }}
-        >
-          {siteConfig.url.replace(/^https?:\/\//, "")}
         </div>
       </div>
     ),
