@@ -1,0 +1,60 @@
+import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+import { resolveApiBaseUrl, resolveMediaHost } from "./lib/api/env";
+
+type RemotePattern = {
+  protocol: "http" | "https";
+  hostname: string;
+  pathname: string;
+};
+
+function buildRemotePatterns(): RemotePattern[] {
+  const patterns: RemotePattern[] = [];
+  const seen = new Set<string>();
+
+  const add = (hostname: string, protocol: "http" | "https") => {
+    const key = `${protocol}://${hostname}`;
+    if (!hostname || seen.has(key)) return;
+    seen.add(key);
+    patterns.push({ protocol, hostname, pathname: "/**" });
+  };
+
+  const apiUrl = resolveApiBaseUrl();
+  if (apiUrl) {
+    try {
+      const url = new URL(apiUrl);
+      add(url.hostname, url.protocol === "http:" ? "http" : "https");
+    } catch {
+      // Invalid NEXT_PUBLIC_API_URL — skip; mocks still work.
+    }
+  }
+
+  const mediaHost = resolveMediaHost();
+  if (mediaHost) {
+    try {
+      if (mediaHost.includes("://")) {
+        const url = new URL(mediaHost);
+        add(url.hostname, url.protocol === "http:" ? "http" : "https");
+      } else {
+        add(mediaHost, "https");
+      }
+    } catch {
+      // Ignore malformed media host.
+    }
+  }
+
+  return patterns;
+}
+
+const nextConfig: NextConfig = {
+  output: "standalone",
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: buildRemotePatterns(),
+  },
+};
+
+const withNextIntl = createNextIntlPlugin();
+
+export default withNextIntl(nextConfig);
