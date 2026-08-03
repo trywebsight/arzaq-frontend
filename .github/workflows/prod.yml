@@ -1,0 +1,34 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - production
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to production VPS
+        env:
+          PRIVATE_KEY: ${{ secrets.DO_PRIVATE_KEY }}
+          HOST: ${{ secrets.DO_HOST }}
+          USER: ${{ secrets.DO_USER }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PRIVATE_KEY:-}" ] || [ -z "${HOST:-}" ] || [ -z "${USER:-}" ]; then
+            echo "Missing DO_PRIVATE_KEY, DO_HOST, or DO_USER secrets — skipping remote deploy."
+            exit 1
+          fi
+          echo "$PRIVATE_KEY" > private_key
+          chmod 600 private_key
+          ssh -i private_key -o StrictHostKeyChecking=no "$USER@$HOST" \
+            "sudo bash /root/arzaq/redeploy_frontend.sh"
