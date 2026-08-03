@@ -5,34 +5,21 @@
  * alias so existing deploys keep working.
  */
 
-function envFlag(value: string | undefined): boolean | undefined {
-  if (value === undefined || value === "") return undefined;
-  const normalised = value.toLowerCase();
-  if (normalised === "false" || normalised === "0" || normalised === "off") {
-    return false;
-  }
-  if (normalised === "true" || normalised === "1" || normalised === "on") {
-    return true;
-  }
-  return undefined;
-}
-
 /**
  * Whether the app serves typed fixtures from `mocks/` instead of HTTP.
  *
- * Resolution order:
- * 1. `NEXT_PUBLIC_MOCK_MODE`
+ * TEMPORARY: always returns `false` so staging hits the live API while we
+ * validate the backend. `NEXT_PUBLIC_MOCK_MODE` / `NEXT_PUBLIC_USE_MOCKS` are
+ * ignored until this force is removed.
+ *
+ * Restore later — resolution order:
+ * 1. `NEXT_PUBLIC_MOCK_MODE` (`true`/`false`, also `1`/`0`/`on`/`off`)
  * 2. `NEXT_PUBLIC_USE_MOCKS` (legacy alias)
  * 3. Default `true` so local DX needs no env file
  */
 export function resolveMockMode(): boolean {
-  const mockMode = envFlag(process.env.NEXT_PUBLIC_MOCK_MODE);
-  if (mockMode !== undefined) return mockMode;
-
-  const useMocks = envFlag(process.env.NEXT_PUBLIC_USE_MOCKS);
-  if (useMocks !== undefined) return useMocks;
-
-  return true;
+  // Temporary hard-off for live backend testing — ignore mock env flags.
+  return false;
 }
 
 /** Absolute API origin. Ignored while mock mode is on. */

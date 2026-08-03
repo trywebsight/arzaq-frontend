@@ -13,10 +13,10 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Build-time public env (override in CI / compose as needed).
-# For staging hosts, prefer runtime SITE_URL on the runner (below) so the
-# public origin is not baked into the image — never commit ephemeral test hosts.
-ARG NEXT_PUBLIC_SITE_URL=https://arzaq.com.kw
-ARG NEXT_PUBLIC_MOCK_MODE=true
+# Temporary staging default matches the sslip.io host; prefer runtime SITE_URL
+# on the runner when the public origin differs from this build ARG.
+ARG NEXT_PUBLIC_SITE_URL=https://arzaq-frontend-rcph7r-5988c7-185-97-144-33.sslip.io
+ARG NEXT_PUBLIC_MOCK_MODE=false
 ARG NEXT_PUBLIC_API_URL=
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_MOCK_MODE=$NEXT_PUBLIC_MOCK_MODE \

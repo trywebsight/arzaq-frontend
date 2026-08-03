@@ -17,7 +17,7 @@ function resolveSiteUrl(): string {
   const raw =
     process.env.SITE_URL?.trim() ||
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    "https://arzaq.com.kw";
+    "https://arzaq-frontend-rcph7r-5988c7-185-97-144-33.sslip.io";
   return raw.replace(/\/$/, "");
 }
 
