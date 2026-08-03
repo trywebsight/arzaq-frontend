@@ -132,12 +132,7 @@ export function ImageLightbox({
           </DialogClose>
         </div>
 
-        <div
-          className="relative min-h-0 flex-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-6"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) onClose();
-          }}
-        >
+        <div className="relative min-h-0 flex-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-6">
           {multi ? (
             <Button
               type="button"
@@ -155,8 +150,25 @@ export function ImageLightbox({
           ) : null}
 
           {active ? (
-            <div className="absolute inset-0 px-12 md:px-16">
-              <div className="relative size-full">
+            <div
+              className="flex size-full items-center justify-center px-12 md:px-16"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) onClose();
+              }}
+            >
+              {/*
+                Reserve the asset aspect before decode so blur never paints at
+                100vh then snaps. Landscape prefers width; portrait prefers height.
+              */}
+              <div
+                className="relative max-h-full max-w-full"
+                style={{
+                  aspectRatio: `${active.width} / ${active.height}`,
+                  ...(active.width >= active.height
+                    ? { width: "100%", height: "auto" }
+                    : { height: "100%", width: "auto" }),
+                }}
+              >
                 <SmartImage
                   key={active.src}
                   src={active.src}
