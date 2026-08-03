@@ -20,7 +20,7 @@ export type OgFont = {
   name: string;
   data: ArrayBuffer;
   style: "normal";
-  weight: 600 | 700;
+  weight: 600 | 700 | 800;
 };
 
 export type OgAssets = {
@@ -31,21 +31,25 @@ export type OgAssets = {
 let cached: Promise<OgAssets> | null = null;
 
 function toArrayBuffer(buffer: Buffer): ArrayBuffer {
-  return buffer.buffer.slice(
-    buffer.byteOffset,
-    buffer.byteOffset + buffer.byteLength,
-  ) as ArrayBuffer;
+  return Uint8Array.from(buffer).buffer;
+}
+
+async function readFont(filename: string): Promise<ArrayBuffer> {
+  const buffer = await readFile(join(process.cwd(), "assets/fonts", filename));
+  return toArrayBuffer(buffer);
 }
 
 /**
- * Load Cairo TTFs and the stacked logo once per process for OG generators.
+ * Load Cairo TTFs (site typeface) and the stacked logo once per process for OG.
+ * Weights must be real static instances — Satori cannot fake Bold from Regular.
  */
 export function loadOgAssets(): Promise<OgAssets> {
   if (!cached) {
     cached = (async () => {
-      const [bold, semibold, logoBuffer] = await Promise.all([
-        readFile(join(process.cwd(), "assets/fonts/Cairo-Bold.ttf")),
-        readFile(join(process.cwd(), "assets/fonts/Cairo-SemiBold.ttf")),
+      const [semibold, bold, extrabold, logoBuffer] = await Promise.all([
+        readFont("Cairo-SemiBold.ttf"),
+        readFont("Cairo-Bold.ttf"),
+        readFont("Cairo-ExtraBold.ttf"),
         readFile(
           join(process.cwd(), "public", assets.logoStacked.src.slice(1)),
         ),
@@ -55,13 +59,19 @@ export function loadOgAssets(): Promise<OgAssets> {
         fonts: [
           {
             name: "Cairo",
-            data: toArrayBuffer(bold),
+            data: extrabold,
+            style: "normal",
+            weight: 800,
+          },
+          {
+            name: "Cairo",
+            data: bold,
             style: "normal",
             weight: 700,
           },
           {
             name: "Cairo",
-            data: toArrayBuffer(semibold),
+            data: semibold,
             style: "normal",
             weight: 600,
           },
