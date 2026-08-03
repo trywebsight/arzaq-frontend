@@ -4,17 +4,18 @@
  * Consumers must never hardcode a file name — import from here so that
  * re-exporting, re-optimising or swapping an asset is a one-file change.
  *
- * Every entry is spread-compatible with `next/image`:
+ * Prefer `SmartImage` so blur-up always applies (build-time map for
+ * local paths; optional `blurDataURL` for remotes):
  *
  * ```tsx
- * import Image from "next/image";
+ * import { SmartImage } from "@/components/common";
  * import { assets } from "@/lib/assets";
  *
- * <Image {...assets.hero} priority sizes="100vw" />
+ * <SmartImage {...assets.hero} priority sizes="100vw" />
  * ```
  */
 export type ImageAsset = {
-  /** Public path, always root-relative. */
+  /** Public path, always root-relative — or absolute https URL from the API. */
   src: string;
   /** Intrinsic pixel width of the file on disk. */
   width: number;
@@ -22,6 +23,13 @@ export type ImageAsset = {
   height: number;
   /** Arabic alternative text. Override per-usage when context demands it. */
   alt: string;
+  /**
+   * Optional low-quality image placeholder (base64 data URL) for
+   * `next/image` blur-up. Local `/public` assets resolve from
+   * `lib/generated/blur-map.json` when omitted. Remote CMS images should
+   * send this so blur-up matches the real photo.
+   */
+  blurDataURL?: string | null;
 };
 
 const asset = (

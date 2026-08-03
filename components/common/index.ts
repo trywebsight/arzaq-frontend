@@ -19,6 +19,9 @@ export type { HapticCardProps } from "./haptic-card";
 export { ImageLightbox } from "./image-lightbox";
 export type { ImageLightboxProps } from "./image-lightbox";
 
+export { SmartImage } from "./smart-image";
+export type { SmartImageProps } from "./smart-image";
+
 export { BoneSkeleton } from "./bone-skeleton";
 export type { BoneSkeletonProps } from "./bone-skeleton";
 

@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-blur-map.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "blur:generate": "node scripts/generate-blur-map.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
