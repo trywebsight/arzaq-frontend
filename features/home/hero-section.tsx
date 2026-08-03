@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { Container, Eyebrow } from "@/components/common";
+import { Container, Eyebrow, SmartImage } from "@/components/common";
 import { CountUp, Reveal, SplitHeading } from "@/components/motion";
 import { assets } from "@/lib/assets";
 import { HERO_STATS, SECTION_IDS } from "@/lib/site";
@@ -35,12 +34,13 @@ export function HeroSection({ className }: { className?: string }) {
           "rounded-none md:rounded-(--hero-radius-md) xl:rounded-(--hero-radius-xl)",
         )}
       >
-        <Image
+        <SmartImage
           src={assets.hero.src}
           alt={t("imageAlt")}
           priority
           fill
           sizes="100vw"
+          quality={70}
           className="object-cover object-center"
         />
 

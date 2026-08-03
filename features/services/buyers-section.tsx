@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { HapticLink, Section, SectionHeader } from "@/components/common";
+import { HapticLink, Section, SectionHeader, SmartImage } from "@/components/common";
 import { Magnetic, Reveal, StaggerGroup } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { BUYER_FEATURES } from "@/features/services/content";
@@ -44,7 +43,7 @@ export function BuyersSection({ className }: { className?: string }) {
 
       <Reveal as="div" from="bottom" distance={24} delay={0.08}>
         <div className="relative aspect-video w-full overflow-hidden rounded-card md:aspect-21/9">
-          <Image
+          <SmartImage
             src={assets.propertyVillaPool.src}
             alt={t("imageAlt")}
             fill

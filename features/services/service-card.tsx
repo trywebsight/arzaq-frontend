@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
-
 import { Lens } from "@/components/ui/lens";
+import { SmartImage } from "@/components/common/smart-image";
 import type { Service } from "@/features/services/types";
 import { hasImageSrc } from "@/lib/api/media";
 import { cn } from "@/lib/utils";
@@ -58,10 +57,11 @@ export function ServiceCard({
       >
         {hasImageSrc(service.image) ? (
           <Lens className="absolute inset-0 size-full">
-            <Image
+            <SmartImage
               src={service.image.src}
               alt={service.image.alt || service.title}
               fill
+              blurDataURL={service.image.blurDataURL}
               sizes={
                 isRow
                   ? "(max-width: 640px) 100vw, (max-width: 1280px) 36vw, 22rem"

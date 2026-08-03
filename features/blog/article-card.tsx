@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 
@@ -9,6 +8,7 @@ import { hasImageSrc } from "@/lib/api/media";
 import type { Post } from "@/features/blog/types";
 import { HapticCard } from "@/components/common/haptic-card";
 import { HapticLink } from "@/components/common/haptic-link";
+import { SmartImage } from "@/components/common/smart-image";
 import { Lens } from "@/components/ui/lens";
 
 export type ArticleCardProps = {
@@ -48,9 +48,12 @@ export function ArticleCard({ post, className }: ArticleCardProps) {
         >
           {hasImageSrc(post.image) ? (
             <Lens className="size-full">
-              <Image
-                {...post.image}
+              <SmartImage
+                src={post.image.src}
                 alt={post.image.alt || post.title}
+                width={post.image.width}
+                height={post.image.height}
+                blurDataURL={post.image.blurDataURL}
                 className="size-full object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
               />

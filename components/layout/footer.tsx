@@ -1,10 +1,10 @@
 import type { ComponentType } from "react";
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Phone, Mail } from "lucide-react";
 
 import { Container } from "@/components/common/container";
 import { HapticLink } from "@/components/common/haptic-link";
+import { SmartImage } from "@/components/common/smart-image";
 import { Button } from "@/components/ui/button";
 import { assets } from "@/lib/assets";
 import {
@@ -82,7 +82,7 @@ export async function Footer({ className }: { className?: string }) {
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-8">
           <div className="flex flex-col gap-5">
             <HapticLink href="/" aria-label={t("logoAlt")} className="w-fit">
-              <Image
+              <SmartImage
                 {...assets.logoStacked}
                 alt={t("logoAlt")}
                 className="h-14 w-auto"

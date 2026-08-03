@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
@@ -20,6 +19,7 @@ import {
   ImageLightbox,
   QueryState,
   Section,
+  SmartImage,
 } from "@/components/common";
 import { Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
@@ -314,11 +314,13 @@ function PropertyDetailContent({ property }: { property: Property }) {
                 className="relative block aspect-4/3 min-h-80 w-full cursor-zoom-in md:aspect-16/10 md:min-h-112 xl:min-h-128 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <Lens className="absolute inset-0 size-full">
-                  <Image
+                  <SmartImage
                     src={property.image.src}
                     alt={property.image.alt || property.title}
                     priority
                     fill
+                    blurDataURL={property.image.blurDataURL}
+                    quality={70}
                     className="object-cover object-center"
                     sizes="(max-width: 768px) 100vw, min(1200px, 92vw)"
                   />

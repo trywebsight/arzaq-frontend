@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { Eyebrow, HapticLink, Section } from "@/components/common";
+import { Eyebrow, HapticLink, Section, SmartImage } from "@/components/common";
 import { Magnetic, Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { assets } from "@/lib/assets";
@@ -34,7 +33,7 @@ export function AboutMissionSection({ className }: { className?: string }) {
           distance={20}
           className="relative aspect-5/4 w-full max-w-[18rem] shrink-0 overflow-hidden rounded-card sm:max-w-[20rem] md:aspect-4/3 md:w-[min(36%,20rem)] xl:w-[min(34%,22rem)]"
         >
-          <Image
+          <SmartImage
             src={assets.towerAlManar.src}
             alt={t("imageAlt")}
             fill

@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Menu } from "lucide-react";
 
 import { HapticLink } from "@/components/common/haptic-link";
+import { SmartImage } from "@/components/common/smart-image";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { useActiveSection } from "@/components/layout/use-active-section";
@@ -124,12 +124,11 @@ export function Navbar() {
             aria-label={t("logoAlt")}
             className="relative ms-1.5 shrink-0"
           >
-            <Image
+            <SmartImage
               {...assets.logoStacked}
               alt={t("logoAlt")}
               className="h-12 w-auto"
               sizes="48px"
-              priority
             />
           </HapticLink>
 
@@ -205,7 +204,7 @@ export function Navbar() {
             aria-label={t("logoAlt")}
             className="relative shrink-0"
           >
-            <Image
+            <SmartImage
               {...assets.logoWordmark}
               alt={t("logoAlt")}
               className="h-7 w-auto"

@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { Eyebrow, Section } from "@/components/common";
+import { Eyebrow, Section, SmartImage } from "@/components/common";
 import { Reveal } from "@/components/motion";
 import { assets } from "@/lib/assets";
 import { cn } from "@/lib/utils";
@@ -51,12 +50,13 @@ export function AboutIntroSection({ className }: { className?: string }) {
         className="mt-8 md:mt-10 xl:mt-12"
       >
         <div className="relative aspect-video w-full overflow-hidden rounded-card md:aspect-21/9">
-          <Image
+          <SmartImage
             src={assets.propertyTowerMarina.src}
             alt={t("imageAlt")}
             fill
             priority
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 90rem"
+            quality={70}
             className="object-cover object-center"
           />
         </div>

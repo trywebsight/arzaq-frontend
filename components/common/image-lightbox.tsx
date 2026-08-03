@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import type { ImageAsset } from "@/lib/assets";
 import { cn } from "@/lib/utils";
+import { SmartImage } from "@/components/common/smart-image";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -155,12 +155,13 @@ export function ImageLightbox({
 
           {active ? (
             <div className="relative h-[85dvh] w-[90vw] max-h-[85dvh] max-w-[90vw]">
-              <Image
+              <SmartImage
                 key={active.src}
                 src={active.src}
                 alt={active.alt || altFallback || t("dialog")}
                 fill
                 priority
+                blurDataURL={active.blurDataURL}
                 className="object-contain"
                 sizes="90vw"
               />

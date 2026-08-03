@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
-
 import { cn } from "@/lib/utils";
 import { hasImageSrc } from "@/lib/api/media";
 import type { TeamMember } from "@/features/team/types";
 import { HapticCard } from "@/components/common/haptic-card";
+import { SmartImage } from "@/components/common/smart-image";
 
 export type TeamCardProps = {
   /** Team member to render. */
@@ -33,9 +32,12 @@ export function TeamCard({ member, className }: TeamCardProps) {
     >
       <div className="relative aspect-square overflow-hidden bg-muted">
         {hasImageSrc(member.image) ? (
-          <Image
-            {...member.image}
+          <SmartImage
+            src={member.image.src}
             alt={member.image.alt || member.name}
+            width={member.image.width}
+            height={member.image.height}
+            blurDataURL={member.image.blurDataURL}
             className="size-full object-cover object-top transition-[scale] duration-300 ease-out group-hover:scale-105 group-focus-within:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-focus-within:scale-100"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />

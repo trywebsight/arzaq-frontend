@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import type { ImageAsset } from "@/lib/assets";
 import { cn } from "@/lib/utils";
+import { SmartImage } from "@/components/common/smart-image";
 import {
   Carousel,
   CarouselContent,
@@ -82,10 +82,11 @@ export function PropertyGallery({
               className="relative block aspect-4/3 w-full cursor-zoom-in overflow-hidden rounded-media focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
             >
               <Lens className="absolute inset-0 size-full">
-                <Image
+                <SmartImage
                   src={asset.src}
                   alt={asset.alt || altFallback}
                   fill
+                  blurDataURL={asset.blurDataURL}
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 85vw, 50vw"
                 />

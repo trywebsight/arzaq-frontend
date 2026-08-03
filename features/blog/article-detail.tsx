@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
 
@@ -18,6 +17,7 @@ import {
   QueryState,
   Section,
   SectionHeader,
+  SmartImage,
 } from "@/components/common";
 import { Reveal, StaggerGroup } from "@/components/motion";
 import { Lens } from "@/components/ui/lens";
@@ -125,11 +125,13 @@ function ArticleDetailContent({ post }: { post: Post }) {
         <Reveal as="div" from="bottom" distance={22} delay={0.14} trigger="mount">
           {hasImageSrc(post.image) ? (
             <Lens className="relative aspect-16/10 overflow-hidden rounded-media md:aspect-21/9">
-              <Image
+              <SmartImage
                 src={post.image.src}
                 alt={post.image.alt || post.title}
                 priority
                 fill
+                blurDataURL={post.image.blurDataURL}
+                quality={70}
                 className="object-cover object-center"
                 sizes="(max-width: 768px) 100vw, min(1200px, 92vw)"
               />

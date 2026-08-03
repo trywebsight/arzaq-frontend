@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ChevronRight, Phone } from "lucide-react";
 
@@ -9,6 +8,7 @@ import { hasImageSrc } from "@/lib/api/media";
 import type { Property } from "@/features/properties/types";
 import { HapticCard } from "@/components/common/haptic-card";
 import { HapticLink } from "@/components/common/haptic-link";
+import { SmartImage } from "@/components/common/smart-image";
 import { Button } from "@/components/ui/button";
 import { Lens } from "@/components/ui/lens";
 
@@ -71,11 +71,12 @@ export function PropertyCard({ property, className }: PropertyCardProps) {
         >
           {hasImageSrc(property.image) ? (
             <Lens className="block size-full min-h-0">
-              <Image
+              <SmartImage
                 src={property.image.src}
                 alt={property.image.alt || property.title}
                 width={property.image.width}
                 height={property.image.height}
+                blurDataURL={property.image.blurDataURL}
                 className="size-full object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
               />
