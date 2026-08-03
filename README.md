@@ -23,14 +23,20 @@ pnpm start
 
 Copy `.env.example` → `.env.local`. Mock mode defaults on (`NEXT_PUBLIC_MOCK_MODE=true`).
 
+In Docker/Dokploy, set **runtime** `MOCK_MODE` / `API_URL` / `SITE_URL` (or `NEXT_PUBLIC_*` aliases) and restart — no rebuild for those. See [`docs/frontend/integration.md`](docs/frontend/integration.md).
+
 ## Docker
 
 ```bash
 docker build -t arzaq-frontend .
-docker run --rm -p 3000:3000 arzaq-frontend
+docker run --rm -p 3000:3000 \
+  -e MOCK_MODE=false \
+  -e API_URL=https://api.example.com \
+  -e SITE_URL=https://example.com \
+  arzaq-frontend
 ```
 
-Uses Next.js `output: "standalone"`.
+Uses Next.js `output: "standalone"`. Entrypoint promotes `NEXT_PUBLIC_*` → non-public names when unset.
 
 ## Docs
 

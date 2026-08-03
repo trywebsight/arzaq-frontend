@@ -1,36 +1,42 @@
 import {
   currentMockState,
+  MOCK_STATE_PARAM,
   type MockState,
 } from "@/lib/api/mock-state";
-import { resolveApiBaseUrl, resolveMockMode } from "@/lib/api/env";
+import {
+  resolveApiBaseUrl,
+  resolveMockDelay,
+  resolveMockMode,
+} from "@/lib/api/env";
 import { apiDefaultHeaders } from "@/lib/api/headers";
+import { isAllowedProxyPath } from "@/lib/api/proxy-path";
 import { emptyMock, resolveMock, type MockQuery } from "@/mocks/registry";
 
 /**
  * The one file that knows where data comes from.
  *
- * Point the app at a real backend with `NEXT_PUBLIC_API_URL` and
- * `NEXT_PUBLIC_MOCK_MODE=false` (or legacy `NEXT_PUBLIC_USE_MOCKS=false`).
- * No feature, query, or component changes required for existing endpoints.
+ * Server / Docker: set `MOCK_MODE` + `API_URL` (or `NEXT_PUBLIC_*` aliases —
+ * the image entrypoint promotes them). Client browser calls go through the
+ * same-origin `/api/proxy` BFF so those runtime values apply without a rebuild.
  */
-
-/** Base URL of the real backend. Ignored while mocks are enabled. */
-export const API_BASE_URL = resolveApiBaseUrl();
-
-/**
- * Mocks are on unless explicitly disabled.
- * @see resolveMockMode
- */
-export const USE_MOCKS = resolveMockMode();
-
-/** Alias of `USE_MOCKS` for clearer call sites. */
-export const isMockMode = USE_MOCKS;
-
-/** Artificial latency for the mock branch, in milliseconds. */
-export const MOCK_DELAY = Number(process.env.NEXT_PUBLIC_MOCK_DELAY ?? 350);
 
 /** Latency used by the forced `slow` state. */
 export const MOCK_SLOW_DELAY = 4000;
+
+/** Re-reads env each call — not a build-time constant. */
+export function isMockMode(): boolean {
+  return resolveMockMode();
+}
+
+/** @deprecated Prefer `isMockMode()` / `resolveMockMode()`. */
+export function getUseMocks(): boolean {
+  return resolveMockMode();
+}
+
+/** Absolute API origin; re-reads env each call. */
+export function getApiBaseUrl(): string {
+  return resolveApiBaseUrl();
+}
 
 export type QueryPrimitive = string | number | boolean | null | undefined;
 
@@ -46,6 +52,10 @@ export type ApiRequestInit = {
    * Matches mock detail behaviour for live APIs.
    */
   nullOn404?: boolean;
+  /**
+   * Server-only override (used by `/api/proxy` so browser `?mockState=` applies).
+   */
+  mockState?: MockState;
 };
 
 /** Thrown for any non-2xx response, and by the forced `error` state. */
@@ -136,18 +146,19 @@ async function fetchMock<T>(
   state: MockState,
 ): Promise<T> {
   const { record } = toQuery(init?.searchParams);
+  const mockDelay = resolveMockDelay();
 
   if (state === "loading") return forever(init?.signal);
 
   if (state === "error") {
-    await delay(Math.min(MOCK_DELAY, 300), init?.signal);
+    await delay(Math.min(mockDelay, 300), init?.signal);
     throw new ApiError("تعذر جلب البيانات (حالة اختبار مجبرة).", {
       status: 500,
       path,
     });
   }
 
-  await delay(state === "slow" ? MOCK_SLOW_DELAY : MOCK_DELAY, init?.signal);
+  await delay(state === "slow" ? MOCK_SLOW_DELAY : mockDelay, init?.signal);
 
   if (state === "empty") return emptyMock(path) as T;
 
@@ -190,7 +201,7 @@ async function fetchReal<T>(
   const base = resolveApiBaseUrl();
   if (!base) {
     throw new ApiError(
-      "NEXT_PUBLIC_API_URL is unset while mock mode is off. Set the API origin or enable NEXT_PUBLIC_MOCK_MODE=true.",
+      "API_URL / NEXT_PUBLIC_API_URL is unset while mock mode is off. Set the API origin or enable MOCK_MODE=true.",
       { status: 500, path },
     );
   }
@@ -250,6 +261,85 @@ async function fetchReal<T>(
   }
 }
 
+const PROXY_MOCK_STATE = "__mockState";
+const PROXY_NULL_ON_404 = "__nullOn404";
+
+/**
+ * Browser → same-origin BFF so `MOCK_MODE` / `API_URL` resolve on the Node
+ * server (runtime Docker env), not from build-time `NEXT_PUBLIC_*` inlining.
+ */
+async function fetchViaProxy<T>(
+  path: string,
+  init: ApiRequestInit | undefined,
+  method: "GET" | "POST",
+  body?: unknown,
+): Promise<T> {
+  if (!isAllowedProxyPath(path)) {
+    throw new ApiError(`Proxy path not allowed: ${path}`, {
+      status: 400,
+      path,
+    });
+  }
+
+  const url = new URL(`/api/proxy${path}`, window.location.origin);
+  const { search } = toQuery(init?.searchParams);
+  if (search) {
+    const extra = new URLSearchParams(search.slice(1));
+    extra.forEach((value, key) => {
+      url.searchParams.set(key, value);
+    });
+  }
+
+  const browserMock = new URLSearchParams(window.location.search).get(
+    MOCK_STATE_PARAM,
+  );
+  if (browserMock) url.searchParams.set(PROXY_MOCK_STATE, browserMock);
+  if (init?.nullOn404) url.searchParams.set(PROXY_NULL_ON_404, "1");
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+
+  const response = await fetch(url, {
+    method,
+    signal: init?.signal,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let message = `Request failed: ${response.status} ${path}`;
+    let errBody: unknown;
+    try {
+      const json = (await response.json()) as {
+        message?: string;
+        body?: unknown;
+      };
+      if (json.message) message = json.message;
+      errBody = json.body;
+    } catch {
+      /* ignore */
+    }
+    throw new ApiError(message, {
+      status: response.status,
+      path,
+      body: errBody,
+    });
+  }
+
+  if (response.status === 204) return null as T;
+
+  const text = await response.text();
+  if (!text) return null as T;
+  return JSON.parse(text) as T;
+}
+
+function resolveStateForCall(init?: ApiRequestInit): MockState {
+  if (init?.mockState) return init.mockState;
+  return currentMockState();
+}
+
 /**
  * Typed GET against the API, or against the fixtures while mocks are on.
  *
@@ -265,9 +355,13 @@ export async function apiFetch<T>(
   path: string,
   init?: ApiRequestInit,
 ): Promise<T> {
-  const state = currentMockState();
+  if (typeof window !== "undefined") {
+    return fetchViaProxy<T>(path, init, "GET");
+  }
 
-  if (USE_MOCKS) return fetchMock<T>(path, init, state);
+  const state = resolveStateForCall(init);
+
+  if (resolveMockMode()) return fetchMock<T>(path, init, state);
 
   if (state === "loading") return forever(init?.signal);
   if (state === "error") {
@@ -279,11 +373,6 @@ export async function apiFetch<T>(
 
   return fetchReal<T>(path, init, "GET");
 }
-
-export type ApiPostInit = Omit<ApiRequestInit, "nullOn404"> & {
-  /** Returned after mock delay when mock mode is on. */
-  mockResult?: never;
-};
 
 /**
  * Typed POST against the API. Mock branch returns `mockResult` after delay.
@@ -297,19 +386,24 @@ export async function apiPost<TResponse, TBody = unknown>(
   body: TBody,
   options?: Omit<ApiRequestInit, "nullOn404"> & { mockResult?: TResponse },
 ): Promise<TResponse> {
-  const state = currentMockState();
+  if (typeof window !== "undefined") {
+    return fetchViaProxy<TResponse>(path, options, "POST", body);
+  }
 
-  if (USE_MOCKS) {
+  const state = resolveStateForCall(options);
+  const mockDelay = resolveMockDelay();
+
+  if (resolveMockMode()) {
     if (state === "loading") return forever(options?.signal);
     if (state === "error") {
-      await delay(Math.min(MOCK_DELAY, 300), options?.signal);
+      await delay(Math.min(mockDelay, 300), options?.signal);
       throw new ApiError("تعذر إرسال البيانات (حالة اختبار مجبرة).", {
         status: 500,
         path,
       });
     }
     await delay(
-      state === "slow" ? MOCK_SLOW_DELAY : MOCK_DELAY,
+      state === "slow" ? MOCK_SLOW_DELAY : mockDelay,
       options?.signal,
     );
     if (options?.mockResult !== undefined) return options.mockResult;
@@ -326,3 +420,9 @@ export async function apiPost<TResponse, TBody = unknown>(
 
   return fetchReal<TResponse>(path, options, "POST", body);
 }
+
+/** Internal query keys used by `/api/proxy` (not forwarded to the backend). */
+export const proxyInternalParams = {
+  mockState: PROXY_MOCK_STATE,
+  nullOn404: PROXY_NULL_ON_404,
+} as const;

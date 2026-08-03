@@ -2,41 +2,58 @@
 
 ## Env vars (finalized)
 
-| Variable | Default | Meaning |
+| Variable | Default | Runtime? | Meaning |
+| --- | --- | --- | --- |
+| `SITE_URL` | *(unset)* | **Yes** | Public origin (preferred). metadataBase, canonicals, sitemap, `og:image` |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Build fallback | Used when `SITE_URL` is unset; Docker entrypoint also promotes it → `SITE_URL` |
+| `API_URL` | `""` | **Yes** | API origin when mocks are off (preferred in Dokploy) |
+| `NEXT_PUBLIC_API_URL` | `""` | Via entrypoint | Alias; promoted to `API_URL` at container start |
+| `MOCK_MODE` | *(unset → on)* | **Yes** | `true` \| `false` (preferred in Dokploy) |
+| `NEXT_PUBLIC_MOCK_MODE` | *(unset → on)* | Via entrypoint | Alias; promoted to `MOCK_MODE` at container start |
+| `USE_MOCKS` / `NEXT_PUBLIC_USE_MOCKS` | *(legacy)* | Yes / via entrypoint | Legacy mock switch |
+| `MEDIA_HOST` / `NEXT_PUBLIC_MEDIA_HOST` | *(unset)* | Informational | CDN hint; `next/image` allows any http(s) host via `hostname: "**"` (build-time pattern, runtime hosts OK) |
+| `MOCK_DELAY` / `NEXT_PUBLIC_MOCK_DELAY` | `350` | **Yes** | Mock latency (ms) |
+| `MOCK_STATE` / `NEXT_PUBLIC_MOCK_STATE` | `ok` | **Yes** | Force `ok` \| `loading` \| `error` \| `empty` \| `slow` |
+
+### Runtime vs build (Dokploy)
+
+| Concern | Rebuild needed? | How to set |
 | --- | --- | --- |
-| `SITE_URL` | *(unset)* | Runtime public origin (preferred for containers). Drives metadataBase, canonicals, sitemap, `og:image` |
-| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` (code fallback) | Build-time public origin; used when `SITE_URL` is unset |
-| `NEXT_PUBLIC_API_URL` | `""` | API origin; used only when mocks are off (required then) |
-| `NEXT_PUBLIC_MOCK_MODE` | *(unset)* | Preferred switch: `true` \| `false` |
-| `NEXT_PUBLIC_USE_MOCKS` | `true` | Legacy alias — still supported |
-| `NEXT_PUBLIC_MOCK_DELAY` | `350` | Mock latency (ms) |
-| `NEXT_PUBLIC_MOCK_STATE` | `ok` | Force `ok` \| `loading` \| `error` \| `empty` \| `slow` |
+| Mock on/off + API origin | **No** — set runtime env and **restart** the container | `MOCK_MODE=false` + `API_URL=https://api…` (or `NEXT_PUBLIC_*` aliases) |
+| Public site origin | **No** | `SITE_URL=https://…` |
+| CMS / Unsplash image hosts | **No** for `next/image` | Permissive `remotePatterns` (`hostname: "**"`). Optional `MEDIA_HOST` is documentation only |
+
+`NEXT_PUBLIC_*` values are normally inlined at `pnpm build`. This app avoids that lock-in for the data layer by:
+
+1. Reading **non-public** `MOCK_MODE` / `API_URL` / `SITE_URL` first on the Node server.
+2. `docker-entrypoint.sh` copying Dokploy `NEXT_PUBLIC_*` into those names when unset.
+3. Browser TanStack Query / contact POST going through same-origin `/api/proxy/*` so the server resolves env (not a baked client constant).
 
 ### Mock mode resolution
 
-Mocks are **on** unless explicitly disabled. `NEXT_PUBLIC_API_URL` never overrides mock mode.
+Mocks are **on** unless explicitly disabled. API URL never overrides mock mode.
 
-1. If `NEXT_PUBLIC_MOCK_MODE` is set → use it (`"false"` disables).
-2. Else if `NEXT_PUBLIC_USE_MOCKS` is set → use it (`"false"` disables).
-3. Else → mocks **on** (local DX with no `.env`).
+1. `MOCK_MODE` → else `USE_MOCKS` → else `NEXT_PUBLIC_MOCK_MODE` → else `NEXT_PUBLIC_USE_MOCKS`
+2. Else → mocks **on** (local DX with no `.env`).
 
-When mocks are off, `NEXT_PUBLIC_API_URL` must be set or requests throw.
+When mocks are off, `API_URL` or `NEXT_PUBLIC_API_URL` must be set or requests throw.
 
 ```bash
 # Local (default)
 NEXT_PUBLIC_MOCK_MODE=true
 
-# Production against Laravel
-NEXT_PUBLIC_API_URL=https://api.example.com
-NEXT_PUBLIC_MOCK_MODE=false
+# Production against Laravel (Dokploy runtime Environment — restart, no rebuild)
+API_URL=https://api.example.com
+MOCK_MODE=false
+# Equivalent aliases still work:
+# NEXT_PUBLIC_API_URL=https://api.example.com
+# NEXT_PUBLIC_MOCK_MODE=false
 
 # Staging / custom public host (Slack & WhatsApp og:image)
-# Set the origin scrapers actually open — title alone with a dead image host
-# looks like a domain-only unfurl.
 SITE_URL=https://example.com
 ```
 
-Single choke point: `lib/api/client.ts` (`isMockMode` / `USE_MOCKS`). Feature `queries.ts` / hooks stay unchanged.
+Single choke point: `lib/api/client.ts` (`resolveMockMode` / `apiFetch`). Feature `queries.ts` / hooks stay unchanged.
 
 ## What must not break
 
@@ -68,12 +85,12 @@ Real HTTP branch sends `Accept-Language` from `siteConfig.locale` (`ar`). Future
 
 ## Contact POST
 
-Uses the shared client (`apiPost`) and the same mock-mode switch as GETs.
+Uses the shared client (`apiPost`) and the same mock-mode switch as GETs. In the browser this goes through `/api/proxy/contact`.
 
 ## Images from the API
 
 1. API returns absolute `https://…` URLs with `width` / `height` / `alt`, and optionally `blurDataURL` (LQIP for remote blur-up).
-2. `next.config.ts` allows the API/media hostname via `images.remotePatterns` (derived from `NEXT_PUBLIC_API_URL` plus optional `NEXT_PUBLIC_MEDIA_HOST`).
+2. `next.config.ts` allows any http(s) hostname via `remotePatterns` (`hostname: "**"`), so CMS/CDN host changes do not require a rebuild.
 3. UI uses `SmartImage` (`placeholder="blur"`). Local `/public` paths resolve LQIP from `lib/generated/blur-map.json`; remote images use CMS `blurDataURL` or a shimmer fallback.
 4. Cards tolerate null images.
 
@@ -97,8 +114,7 @@ Legal pages already render from `GET /legal/*`. Until settings/home/SEO are cons
 
 ## Go-live steps
 
-1. Deploy API with CORS allowing the Next origin (browser contact POST; server components call API from Node — CORS irrelevant for RSC GETs).
-2. Set env on the Next host.
-3. Confirm `pnpm build` with mocks off against staging (or keep mocks on for preview deploys).
+1. Deploy API with CORS allowing the Next origin (browser contact POST now uses same-origin proxy; CORS only matters if something calls the API directly from the browser).
+2. Set **runtime** env on the Next host (`MOCK_MODE=false`, `API_URL=…`, `SITE_URL=…`) and restart — no rebuild for those.
+3. Confirm empty states / smoke listing, detail, contact, privacy, terms, sitemap.
 4. Seed or accept empty states (including unpublished legal docs).
-5. Smoke listing, detail, contact, privacy, terms, sitemap.

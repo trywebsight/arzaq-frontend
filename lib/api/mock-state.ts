@@ -2,8 +2,8 @@
  * Forced data states.
  *
  * Every UI state the sections must render can be reproduced without touching
- * code — either globally with `NEXT_PUBLIC_MOCK_STATE`, or per page load with
- * the `?mockState=` query parameter.
+ * code — either globally with `MOCK_STATE` / `NEXT_PUBLIC_MOCK_STATE`, or per
+ * page load with the `?mockState=` query parameter.
  *
  * | state     | behaviour                                        |
  * | --------- | ------------------------------------------------ |
@@ -13,12 +13,17 @@
  * | `empty`   | requests resolve with an empty collection        |
  * | `slow`    | fixtures resolve after a long, visible delay     |
  */
+
 export const MOCK_STATES = ["ok", "loading", "error", "empty", "slow"] as const;
 
 export type MockState = (typeof MOCK_STATES)[number];
 
 /** Query parameter that overrides the state for a single page load. */
 export const MOCK_STATE_PARAM = "mockState";
+
+function env(name: string): string | undefined {
+  return process.env[name];
+}
 
 function normalise(value: string | null | undefined): MockState | undefined {
   if (!value) return undefined;
@@ -27,9 +32,20 @@ function normalise(value: string | null | undefined): MockState | undefined {
     : undefined;
 }
 
-/** State configured via `NEXT_PUBLIC_MOCK_STATE`. Defaults to `ok`. */
+/** Parse a raw mock-state string (query / header). */
+export function parseMockState(
+  value: string | null | undefined,
+): MockState | undefined {
+  return normalise(value);
+}
+
+/** State configured via env. Defaults to `ok`. */
 export function envMockState(): MockState {
-  return normalise(process.env.NEXT_PUBLIC_MOCK_STATE) ?? "ok";
+  return (
+    normalise(env("MOCK_STATE")) ??
+    normalise(env("NEXT_PUBLIC_MOCK_STATE")) ??
+    "ok"
+  );
 }
 
 /**
@@ -49,8 +65,8 @@ export function mockStateFromSearchParams(
 /**
  * The state that applies to the *current* request.
  *
- * On the server only the env var is visible; in the browser the query
- * parameter wins so a reviewer can flip states by editing the URL.
+ * On the server only the env var is visible (unless a caller passes an
+ * override into `apiFetch`); in the browser the query parameter wins.
  */
 export function currentMockState(): MockState {
   if (typeof window === "undefined") return envMockState();

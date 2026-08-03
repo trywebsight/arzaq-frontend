@@ -1,48 +1,81 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
-import { resolveApiBaseUrl, resolveMediaHost } from "./lib/api/env";
-
 type RemotePattern = {
   protocol: "http" | "https";
   hostname: string;
+  port?: string;
   pathname: string;
 };
 
-function buildRemotePatterns(): RemotePattern[] {
-  const patterns: RemotePattern[] = [];
-  const seen = new Set<string>();
+/**
+ * Parse a host or absolute origin into a next/image remotePattern.
+ * Accepts `cdn.example.com`, `https://cdn.example.com/`, trailing slashes.
+ *
+ * @param keepPath — when true, a non-root pathname becomes a prefix
+ *   (`https://cdn.example.com/media/` → `/media/**`). API origins should
+ *   pass false so `/api` does not block `/storage/...` media on the same host.
+ */
+function patternFromHost(
+  raw: string,
+  keepPath = false,
+): RemotePattern | undefined {
+  const value = raw.trim();
+  if (!value) return undefined;
 
-  const add = (hostname: string, protocol: "http" | "https") => {
-    const key = `${protocol}://${hostname}`;
-    if (!hostname || seen.has(key)) return;
+  try {
+    const url = value.includes("://")
+      ? new URL(value)
+      : new URL(`https://${value}`);
+
+    const protocol = url.protocol === "http:" ? "http" : "https";
+    const hostname = url.hostname;
+    if (!hostname) return undefined;
+
+    let pathname = "/**";
+    if (keepPath) {
+      const basePath = url.pathname.replace(/\/+$/, "");
+      if (basePath && basePath !== "/") pathname = `${basePath}/**`;
+    }
+
+    const pattern: RemotePattern = { protocol, hostname, pathname };
+    if (url.port) pattern.port = url.port;
+    return pattern;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Allow next/image to optimize remote CMS/CDN URLs.
+ *
+ * `hostname: "**"` is evaluated at build and permits any https/http host at
+ * runtime (API, Unsplash, MEDIA_HOST) without rebuilding when the CDN changes.
+ * Specific hosts from env are still added when present (narrower patterns).
+ */
+function buildRemotePatterns(): RemotePattern[] {
+  const patterns: RemotePattern[] = [
+    { protocol: "https", hostname: "**", pathname: "/**" },
+    { protocol: "http", hostname: "**", pathname: "/**" },
+  ];
+  const seen = new Set(
+    patterns.map(
+      (p) => `${p.protocol}://${p.hostname}:${p.port ?? ""}${p.pathname}`,
+    ),
+  );
+
+  const add = (raw: string | undefined, keepPath = false) => {
+    if (!raw) return;
+    const pattern = patternFromHost(raw, keepPath);
+    if (!pattern) return;
+    const key = `${pattern.protocol}://${pattern.hostname}:${pattern.port ?? ""}${pattern.pathname}`;
+    if (seen.has(key)) return;
     seen.add(key);
-    patterns.push({ protocol, hostname, pathname: "/**" });
+    patterns.push(pattern);
   };
 
-  const apiUrl = resolveApiBaseUrl();
-  if (apiUrl) {
-    try {
-      const url = new URL(apiUrl);
-      add(url.hostname, url.protocol === "http:" ? "http" : "https");
-    } catch {
-      // Invalid NEXT_PUBLIC_API_URL — skip; mocks still work.
-    }
-  }
-
-  const mediaHost = resolveMediaHost();
-  if (mediaHost) {
-    try {
-      if (mediaHost.includes("://")) {
-        const url = new URL(mediaHost);
-        add(url.hostname, url.protocol === "http:" ? "http" : "https");
-      } else {
-        add(mediaHost, "https");
-      }
-    } catch {
-      // Ignore malformed media host.
-    }
-  }
+  add(process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL, false);
+  add(process.env.MEDIA_HOST ?? process.env.NEXT_PUBLIC_MEDIA_HOST, true);
 
   return patterns;
 }

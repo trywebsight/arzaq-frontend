@@ -1,14 +1,14 @@
 /**
  * Every REST path the app knows about, in one place.
  *
- * Paths are relative to `NEXT_PUBLIC_API_URL`. The mock resolver in
- * `mocks/registry.ts` matches on collection names for paths that have
+ * Paths are relative to `API_URL` / `NEXT_PUBLIC_API_URL`. The mock resolver
+ * in `mocks/registry.ts` matches on collection names for paths that have
  * fixtures today. Planned endpoints (settings, home, seo, faqs) are listed
  * here so go-live does not require scattering path strings. Legal
  * (`/legal/privacy`, `/legal/terms`) is wired end-to-end via mocks.
  *
- * Flip `NEXT_PUBLIC_MOCK_MODE=false` (or `NEXT_PUBLIC_USE_MOCKS=false`) to
- * hit the real API — no path rewriting in features.
+ * Flip `MOCK_MODE=false` (or `NEXT_PUBLIC_MOCK_MODE=false`) to hit the real
+ * API — no path rewriting in features.
  */
 export const endpoints = {
   properties: "/properties",
