@@ -4,10 +4,10 @@ Public site for أرزاق العقارية. Next.js App Router, pnpm, TanStack 
 
 ## Branches
 
-| Branch | Purpose |
-| --- | --- |
+| Branch       | Purpose            |
+| ------------ | ------------------ |
 | `production` | Production deploys |
-| `staging` | Staging / testing |
+| `staging`    | Staging / testing  |
 
 ## Scripts
 
@@ -36,11 +36,3 @@ Uses Next.js `output: "standalone"`.
 
 - Full integration: [`docs/README.md`](docs/README.md)
 - Backend API handoff: [`docs/backend-docs/`](docs/backend-docs/)
-
-## CI / deploy
-
-- `.github/workflows/ci.yml` — lint, typecheck, build on `production` + `staging`
-- `.github/workflows/prod.yml` — deploy on push to `production`
-- `.github/workflows/staging.yml` — deploy on push to `staging`
-
-Required secrets: `DO_PRIVATE_KEY`, `DO_USER`, `DO_HOST` (prod), `DO_STAGING_HOST` (staging).
