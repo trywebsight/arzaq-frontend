@@ -45,7 +45,10 @@ function filterProperties(query: MockQuery): Property[] {
     kind: query.kind as PropertyKind | undefined,
     city: query.city,
     governorate: query.governorate as GovernorateId | undefined,
-    featured: query.featured === undefined ? undefined : query.featured === "true",
+    featured:
+      query.featured === undefined
+        ? undefined
+        : query.featured === "true" || query.featured === "1",
     search: query.search,
     minPrice: optionalNumber(query.minPrice),
     maxPrice: optionalNumber(query.maxPrice),

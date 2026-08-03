@@ -12,3 +12,15 @@ export function fetchLegalDocument(
     nullOn404: true,
   });
 }
+
+/** Same as `fetchLegalDocument`, but network failures resolve to `null`. */
+export async function fetchLegalDocumentSafe(
+  slug: LegalDocumentSlug,
+  signal?: AbortSignal,
+): Promise<LegalDocument | null> {
+  try {
+    return await fetchLegalDocument(slug, signal);
+  } catch {
+    return null;
+  }
+}

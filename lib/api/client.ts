@@ -71,7 +71,10 @@ function toQuery(
 
   for (const [key, value] of Object.entries(searchParams ?? {})) {
     if (value === undefined || value === null || value === "") continue;
-    const serialised = String(value);
+    // Laravel query validation accepts 1/0 reliably; bare "true"/"false"
+    // strings 422 on some backends. Mocks accept both forms.
+    const serialised =
+      typeof value === "boolean" ? (value ? "1" : "0") : String(value);
     params.set(key, serialised);
     record[key] = serialised;
   }
@@ -159,6 +162,24 @@ async function readErrorBody(response: Response): Promise<unknown> {
   }
 }
 
+/** Soft GET timeout so SSR cannot hang forever on an unreachable API. */
+const GET_TIMEOUT_MS = 10_000;
+
+function resolveFetchSignal(
+  method: "GET" | "POST",
+  signal?: AbortSignal,
+): AbortSignal | undefined {
+  if (method !== "GET") return signal;
+  if (typeof AbortSignal.timeout !== "function") return signal;
+
+  const timeout = AbortSignal.timeout(GET_TIMEOUT_MS);
+  if (!signal) return timeout;
+  if (typeof AbortSignal.any === "function") {
+    return AbortSignal.any([signal, timeout]);
+  }
+  return signal;
+}
+
 async function fetchReal<T>(
   path: string,
   init?: ApiRequestInit,
@@ -178,31 +199,49 @@ async function fetchReal<T>(
     headers["Content-Type"] = "application/json";
   }
 
-  const response = await fetch(url, {
-    method,
-    signal: init?.signal,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    next: init?.next,
-  });
+  const signal = resolveFetchSignal(method, init?.signal);
 
-  if (!response.ok) {
-    if (init?.nullOn404 && response.status === 404) {
+  try {
+    const response = await fetch(url, {
+      method,
+      signal,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      next: init?.next,
+    });
+
+    if (!response.ok) {
+      if (init?.nullOn404 && response.status === 404) {
+        return null as T;
+      }
+      throw new ApiError(`Request failed: ${response.status} ${path}`, {
+        status: response.status,
+        path,
+        body: await readErrorBody(response),
+      });
+    }
+
+    if (response.status === 204) {
       return null as T;
     }
-    throw new ApiError(`Request failed: ${response.status} ${path}`, {
-      status: response.status,
-      path,
-      body: await readErrorBody(response),
-    });
-  }
 
-  if (response.status === 204) {
-    return null as T;
+    const json: unknown = await response.json();
+    return unwrapPayload<T>(json);
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    if (
+      error instanceof Error &&
+      (error.name === "TimeoutError" ||
+        error.name === "AbortError" ||
+        error.name === "DOMException")
+    ) {
+      throw new ApiError(`Request timed out: ${path}`, {
+        status: 408,
+        path,
+      });
+    }
+    throw error;
   }
-
-  const json: unknown = await response.json();
-  return unwrapPayload<T>(json);
 }
 
 /**
