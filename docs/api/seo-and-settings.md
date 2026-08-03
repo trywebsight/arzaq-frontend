@@ -73,7 +73,7 @@ For `properties:{slug}` / `posts:{slug}`, Filament may store per-entity SEO colu
 - expose them only on the detail resource (`title`/`excerpt`/`image` already feed metadata today), or  
 - also expose via `/seo/properties:{slug}` for marketing overrides that differ from the card title.
 
-**Current frontend (no SEO API yet):** detail metadata uses entity `title` + `excerpt` + `image`; listing/static pages use `buildPageMetadata` + `Meta.*`. Default brand card: `/opengraph-image` (1200×630).
+**Current frontend (no SEO API yet):** detail metadata uses entity `title` + `excerpt` + `image`; listing/static pages use `buildPageMetadata` + `Meta.*`. Default brand card: `/og.png` (rewrites to `/opengraph-image`, 1200×630 PNG).
 
 ## `GET /settings`
 

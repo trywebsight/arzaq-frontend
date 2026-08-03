@@ -4,7 +4,8 @@
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://arzaq.com.kw` (code fallback) | Canonical origin, sitemap, metadataBase |
+| `SITE_URL` | *(unset)* | Runtime public origin (preferred for containers). Drives metadataBase, canonicals, sitemap, `og:image` |
+| `NEXT_PUBLIC_SITE_URL` | `https://arzaq.com.kw` (code fallback) | Build-time public origin; used when `SITE_URL` is unset |
 | `NEXT_PUBLIC_API_URL` | `""` | API origin; used only when mocks are off |
 | `NEXT_PUBLIC_MOCK_MODE` | *(unset)* | Preferred switch: `true` \| `false` |
 | `NEXT_PUBLIC_USE_MOCKS` | `true` | Legacy alias — still supported |
@@ -26,6 +27,11 @@ NEXT_PUBLIC_MOCK_MODE=true
 # Production against Laravel
 NEXT_PUBLIC_API_URL=https://api.example.com
 NEXT_PUBLIC_MOCK_MODE=false
+
+# Staging / custom public host (Slack & WhatsApp og:image)
+# Set the origin scrapers actually open — title alone with a dead image host
+# looks like a domain-only unfurl.
+SITE_URL=https://example.com
 ```
 
 Single choke point: `lib/api/client.ts` (`isMockMode` / `USE_MOCKS`). Feature `queries.ts` / hooks stay unchanged.
@@ -64,9 +70,10 @@ Uses the shared client (`apiPost`) and the same mock-mode switch as GETs.
 
 ## Images from the API
 
-1. API returns absolute `https://…` URLs with width/height/alt.
+1. API returns absolute `https://…` URLs with `width` / `height` / `alt`, and optionally `blurDataURL` (LQIP for remote blur-up).
 2. `next.config.ts` allows the API/media hostname via `images.remotePatterns` (derived from `NEXT_PUBLIC_API_URL` plus optional `NEXT_PUBLIC_MEDIA_HOST`).
-3. Cards tolerate null images.
+3. UI uses `SmartImage` (`placeholder="blur"`). Local `/public` paths resolve LQIP from `lib/generated/blur-map.json`; remote images use CMS `blurDataURL` or a shimmer fallback.
+4. Cards tolerate null images.
 
 ## Optional Laravel `{ data }` wrap
 

@@ -10,8 +10,11 @@ JSON field names **match** TypeScript in `features/*/types.ts` and `lib/assets.t
   width: number;  // Intrinsic px — required for next/image when not using fill alone
   height: number;
   alt: string;    // Arabic alt; may be "" but prefer real text (max length in constraints)
+  blurDataURL?: string | null; // Optional LQIP (base64 data URL) for blur-up on remote images
 }
 ```
+
+**Blur-up:** The frontend always uses `placeholder="blur"`. Local `/public` assets resolve LQIP from a build-time map. For **remote CMS images**, send `blurDataURL` (tiny WebP/JPEG base64, ~16px wide) so the blur matches the photo. If omitted, a neutral shimmer is used.
 
 **Missing image on a published entity:** send `null` for `image` only if unpublished drafts leak — preferred rule: **do not publish** without an image. Frontend still guards null/missing `src` with a muted placeholder.
 

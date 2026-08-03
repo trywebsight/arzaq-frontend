@@ -48,7 +48,7 @@ Legal documents store **fully resolved Arabic (and future locale) body** as stru
 
 API `ImageAsset.src` must be an **absolute HTTPS URL** the Next.js image optimizer can fetch. Configure `images.remotePatterns` for the media host.
 
-Always include `width`, `height`, and `alt` in the JSON (derive width/height from the stored media).
+Always include `width`, `height`, and `alt` in the JSON (derive width/height from the stored media). Prefer also sending `blurDataURL` (tiny ~16px-wide WebP/JPEG base64 data URL) so remote blur-up matches the photo; if omitted, the frontend uses a neutral shimmer.
 
 ## Contact form
 
