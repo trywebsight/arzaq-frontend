@@ -1,0 +1,189 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Design tokens.
+
+  Brand colours are authored as plain hex in :root and surfaced to Tailwind
+  through the theme block below, so bg-primary, text-ink, text-ink-muted and
+  friends all resolve to the same source of truth. shadcn semantic variables
+  (--primary, --foreground, --muted-foreground, ...) map onto the brand palette
+  rather than remaining a second, competing scale.
+*/
+
+:root {
+  /* `--font-cairo` is injected on <html> by next/font (see lib/fonts.ts). */
+  --font-mono-stack: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Brand palette */
+  --brand-primary: #00ade9;
+  --brand-ink: #231f20;
+  --brand-ink-muted: #646464;
+
+  --ink: var(--brand-ink);
+  --ink-muted: var(--brand-ink-muted);
+
+  /* shadcn semantic surface mapped onto the brand palette */
+  --background: #ffffff;
+  --foreground: var(--brand-ink);
+  --card: #ffffff;
+  --card-foreground: var(--brand-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-ink);
+  --primary: var(--brand-primary);
+  --primary-foreground: #ffffff;
+  --secondary: #f4f5f6;
+  --secondary-foreground: var(--brand-ink);
+  --muted: #f4f5f6;
+  --muted-foreground: var(--brand-ink-muted);
+  --accent: #eaf8fe;
+  --accent-foreground: var(--brand-ink);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e6e7e8;
+  --input: #e6e7e8;
+  --ring: color-mix(in oklch, var(--brand-primary) 60%, transparent);
+
+  --chart-1: var(--brand-primary);
+  --chart-2: color-mix(in oklch, var(--brand-primary) 70%, white);
+  --chart-3: color-mix(in oklch, var(--brand-primary) 40%, white);
+  --chart-4: var(--brand-ink-muted);
+  --chart-5: var(--brand-ink);
+
+  --radius: 0.75rem;
+  /* Editorial radii used by cards and media masks across the marketing page. */
+  --radius-card-value: 1.5rem;
+  --radius-media-value: 1.25rem;
+
+  /* Hero white frame: outer inset + rounded media mask (md+; mobile is full-bleed). */
+  --hero-frame: 0.75rem;
+  --hero-frame-md: 1rem;
+  --hero-frame-xl: 1.25rem;
+  --hero-radius: 1.5rem;
+  --hero-radius-md: 2rem;
+  --hero-radius-xl: 2.5rem;
+
+  /*
+    Nav geometry → content offset.
+    Mobile solid bar = --nav-bar-h; desktop pill ≈ h-12 + py-3 (~72px).
+    --page-pad-top = bar height + modest breath (do not restack hero-frame
+    inset on inner pages). Home (#hero) opts out via SiteShell
+    (`has-[#hero]:pt-0`).
+  */
+  --nav-bar-h: 4.25rem;
+  /* bar + ~1rem breath under the pill before Section rhythm → ~5.25rem */
+  --page-pad-top: calc(var(--nav-bar-h) + 1rem);
+  --scroll-margin-nav: calc(var(--page-pad-top) + 0.5rem);
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--brand-ink);
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f5f6;
+  --sidebar-accent-foreground: var(--brand-ink);
+  --sidebar-border: #e6e7e8;
+  --sidebar-ring: color-mix(in oklch, var(--brand-primary) 60%, transparent);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-brand: var(--primary);
+  --font-sans: var(--font-cairo);
+  --font-mono: var(--font-mono-stack);
+  --font-heading: var(--font-cairo);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-card: var(--radius-card-value);
+  --radius-media: var(--radius-media-value);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    /* Kuwaiti convention: Western digits, never arabic-indic. */
+    font-variant-numeric: lining-nums tabular-nums;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --nav-bar-h: 4.5rem;
+      /* ~5.75rem */
+      --page-pad-top: calc(var(--nav-bar-h) + 1.25rem);
+      --scroll-margin-nav: calc(var(--page-pad-top) + 0.5rem);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    :root {
+      /* ~6rem */
+      --page-pad-top: calc(var(--nav-bar-h) + 1.5rem);
+      --scroll-margin-nav: calc(var(--page-pad-top) + 0.5rem);
+    }
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Arabic numerals stay Western even inside `font-feature-settings` resets. */
+  [lang="ar"] {
+    font-variant-numeric: lining-nums;
+  }
+
+  /* Skip-link target; section anchors get the same via `Section` / hero. */
+  #main {
+    scroll-margin-top: var(--scroll-margin-nav);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
