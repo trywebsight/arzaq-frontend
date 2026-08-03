@@ -95,11 +95,12 @@ export function ImageLightbox({
       }}
     >
       <DialogContent
+        fullscreen
         showCloseButton={false}
         onKeyDown={handleKeyDown}
         onPointerDownOutside={() => onClose()}
         className={cn(
-          "fixed inset-0 z-50 flex h-dvh w-screen max-w-none translate-0 flex-col gap-0 rounded-none border-0 bg-black/92 p-0 text-white shadow-none ring-0 outline-none supports-backdrop-filter:backdrop-blur-sm data-open:zoom-in-100 data-closed:zoom-out-100",
+          "bg-black/92 text-white supports-backdrop-filter:backdrop-blur-sm",
           className,
         )}
       >
@@ -111,7 +112,7 @@ export function ImageLightbox({
           })}
         </DialogDescription>
 
-        <div className="relative z-10 flex shrink-0 items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4">
+        <div className="relative z-10 flex shrink-0 items-center justify-between gap-3 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 md:px-6 md:py-4">
           <p className="text-sm font-medium text-white/80 tabular-nums">
             {t("counter", {
               current: activeIndex + 1,
@@ -132,7 +133,7 @@ export function ImageLightbox({
         </div>
 
         <div
-          className="relative flex min-h-0 flex-1 items-center justify-center px-3 pb-4 md:px-14 md:pb-8"
+          className="relative min-h-0 flex-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-6"
           onClick={(event) => {
             if (event.target === event.currentTarget) onClose();
           }}
@@ -144,7 +145,7 @@ export function ImageLightbox({
               size="icon-pill"
               aria-label={t("previous")}
               onClick={showPrev}
-              className="absolute inset-s-2 z-10 text-white hover:bg-white/10 hover:text-white md:inset-s-4"
+              className="absolute inset-s-1 top-1/2 z-10 -translate-y-1/2 text-white hover:bg-white/10 hover:text-white sm:inset-s-2 md:inset-s-4"
             >
               <ChevronLeft
                 className="size-6 rtl:-scale-x-100"
@@ -154,17 +155,19 @@ export function ImageLightbox({
           ) : null}
 
           {active ? (
-            <div className="relative h-[85dvh] w-[90vw] max-h-[85dvh] max-w-[90vw]">
-              <SmartImage
-                key={active.src}
-                src={active.src}
-                alt={active.alt || altFallback || t("dialog")}
-                fill
-                priority
-                blurDataURL={active.blurDataURL}
-                className="object-contain"
-                sizes="90vw"
-              />
+            <div className="absolute inset-0 px-12 md:px-16">
+              <div className="relative size-full">
+                <SmartImage
+                  key={active.src}
+                  src={active.src}
+                  alt={active.alt || altFallback || t("dialog")}
+                  fill
+                  priority
+                  blurDataURL={active.blurDataURL}
+                  className="object-contain"
+                  sizes="100vw"
+                />
+              </div>
             </div>
           ) : null}
 
@@ -175,7 +178,7 @@ export function ImageLightbox({
               size="icon-pill"
               aria-label={t("next")}
               onClick={showNext}
-              className="absolute inset-e-2 z-10 text-white hover:bg-white/10 hover:text-white md:inset-e-4"
+              className="absolute inset-e-1 top-1/2 z-10 -translate-y-1/2 text-white hover:bg-white/10 hover:text-white sm:inset-e-2 md:inset-e-4"
             >
               <ChevronRight
                 className="size-6 rtl:-scale-x-100"

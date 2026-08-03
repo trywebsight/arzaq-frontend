@@ -178,7 +178,12 @@ export function QueryErrorState({
         {description ?? t("error.description")}
       </p>
       {onRetry ? (
-        <Button variant="outline" size="pill-sm" onClick={onRetry} className="mt-2">
+        <Button
+          variant="outline"
+          size="pill-sm"
+          onClick={onRetry}
+          className="mt-2 text-black"
+        >
           <RotateCcw aria-hidden="true" />
           {t("error.retry")}
         </Button>
