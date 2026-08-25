@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import {
   CtaVisibilityProvider,
   CtaBandGate,
@@ -6,6 +8,7 @@ import { CtaBand } from "@/components/layout/cta-band";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
+import { resolveDemoMode } from "@/lib/api/env";
 
 export type SiteShellProps = {
   children: React.ReactNode;
@@ -35,18 +38,21 @@ export type SiteShellProps = {
  *   <main>…</main>
  * </>
  */
-export function SiteShell({ children, showCta = true }: SiteShellProps) {
+export async function SiteShell({ children, showCta = true }: SiteShellProps) {
+  await connection();
+  const demoMode = resolveDemoMode();
+
   return (
     <CtaVisibilityProvider defaultVisible={showCta}>
       <ScrollToTop />
-      <Navbar />
+      <Navbar demoMode={demoMode} />
       <div className="flex min-h-0 flex-1 flex-col pt-(--page-pad-top) has-[#hero]:pt-0">
         {children}
       </div>
       <CtaBandGate>
         <CtaBand />
       </CtaBandGate>
-      <Footer />
+      <Footer demoMode={demoMode} />
     </CtaVisibilityProvider>
   );
 }

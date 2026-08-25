@@ -4,13 +4,12 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import { Menu } from "lucide-react";
 
+import { SiteLogo } from "@/components/brand/site-logo";
 import { HapticLink } from "@/components/common/haptic-link";
-import { SmartImage } from "@/components/common/smart-image";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { useActiveSection } from "@/components/layout/use-active-section";
 import { DURATION, EASE, Flip, gsap, matchMotion, useGSAP } from "@/lib/gsap";
-import { assets } from "@/lib/assets";
 import { NAV_ITEMS } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +17,10 @@ import { cn } from "@/lib/utils";
  * Site header: floating pill over the inset hero on desktop; solid white
  * bar with circular menu toggle (right) + wordmark (left) on mobile.
  * Active nav item uses a GSAP Flip gray pill.
+ *
+ * @param demoMode - When true, Websight marks replace Arzaq logos (`DEMO_MODE`).
  */
-export function Navbar() {
+export function Navbar({ demoMode = false }: { demoMode?: boolean }) {
   const t = useTranslations("Nav");
   const tCommon = useTranslations("Common");
   const activeKey = useActiveSection();
@@ -124,8 +125,9 @@ export function Navbar() {
             aria-label={t("logoAlt")}
             className="relative ms-1.5 shrink-0"
           >
-            <SmartImage
-              {...assets.logoStacked}
+            <SiteLogo
+              variant="stacked"
+              demo={demoMode}
               alt={t("logoAlt")}
               className="h-12 w-auto"
               sizes="48px"
@@ -204,8 +206,9 @@ export function Navbar() {
             aria-label={t("logoAlt")}
             className="relative shrink-0"
           >
-            <SmartImage
-              {...assets.logoWordmark}
+            <SiteLogo
+              variant="wordmark"
+              demo={demoMode}
               alt={t("logoAlt")}
               className="h-7 w-auto"
               sizes="120px"

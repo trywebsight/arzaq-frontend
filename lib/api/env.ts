@@ -1,10 +1,10 @@
 /**
- * Data-layer env resolution.
+ * Runtime env resolution.
  *
- * Server / Docker runtime prefers non-public names (`MOCK_MODE`, `API_URL`, …)
- * so Dokploy can flip them without a rebuild. `NEXT_PUBLIC_*` remains as a
- * fallback (local `.env` / legacy) and is promoted to the non-public names by
- * `docker-entrypoint.sh` when unset.
+ * Server / Docker runtime prefers non-public names (`MOCK_MODE`, `API_URL`,
+ * `DEMO_MODE`, …) so Dokploy can flip them without a rebuild. `NEXT_PUBLIC_*`
+ * remains as a fallback (local `.env` / legacy) and is promoted to the
+ * non-public names by `docker-entrypoint.sh` when unset.
  *
  * Access env via dynamic keys so production server code is not locked to
  * build-time `NEXT_PUBLIC_*` string replacements.
@@ -79,4 +79,16 @@ export function resolveMockDelay(): number {
   const raw = firstEnv("MOCK_DELAY", "NEXT_PUBLIC_MOCK_DELAY");
   const n = raw === undefined ? NaN : Number(raw);
   return Number.isFinite(n) ? n : 350;
+}
+
+/**
+ * Whether chrome logos swap to the Websight demo marks.
+ *
+ * Resolution order:
+ * 1. `DEMO_MODE` (runtime, preferred in Docker)
+ * 2. `NEXT_PUBLIC_DEMO_MODE`
+ * 3. Default `false`
+ */
+export function resolveDemoMode(): boolean {
+  return envFlag(firstEnv("DEMO_MODE", "NEXT_PUBLIC_DEMO_MODE")) ?? false;
 }

@@ -1,7 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { resolveDemoMode } from "@/lib/api/env";
 import { assets } from "@/lib/assets";
+import { websightMarkDataUrl } from "@/lib/brand/websight";
 
 export const OG_SIZE = { width: 1200, height: 630 } as const;
 
@@ -28,7 +30,7 @@ export type OgAssets = {
   logoSrc: string;
 };
 
-let cached: Promise<OgAssets> | null = null;
+let cached: { demo: boolean; promise: Promise<OgAssets> } | null = null;
 
 function toArrayBuffer(buffer: Buffer): ArrayBuffer {
   return Uint8Array.from(buffer).buffer;
@@ -44,43 +46,52 @@ async function readFont(filename: string): Promise<ArrayBuffer> {
  * Weights must be real static instances — Satori cannot fake Bold from Regular.
  */
 export function loadOgAssets(): Promise<OgAssets> {
-  if (!cached) {
-    cached = (async () => {
-      const [semibold, bold, extrabold, logoBuffer] = await Promise.all([
-        readFont("Cairo-SemiBold.ttf"),
-        readFont("Cairo-Bold.ttf"),
-        readFont("Cairo-ExtraBold.ttf"),
-        readFile(
-          join(process.cwd(), "public", assets.logoStacked.src.slice(1)),
-        ),
-      ]);
+  const demo = resolveDemoMode();
+  if (!cached || cached.demo !== demo) {
+    cached = {
+      demo,
+      promise: (async () => {
+        const [semibold, bold, extrabold, logoSrc] = await Promise.all([
+          readFont("Cairo-SemiBold.ttf"),
+          readFont("Cairo-Bold.ttf"),
+          readFont("Cairo-ExtraBold.ttf"),
+          demo
+            ? Promise.resolve(websightMarkDataUrl())
+            : readFile(
+                join(process.cwd(), "public", assets.logoStacked.src.slice(1)),
+              ).then(
+                (logoBuffer) =>
+                  `data:image/png;base64,${logoBuffer.toString("base64")}`,
+              ),
+        ]);
 
-      return {
-        fonts: [
-          {
-            name: "Cairo",
-            data: extrabold,
-            style: "normal",
-            weight: 800,
-          },
-          {
-            name: "Cairo",
-            data: bold,
-            style: "normal",
-            weight: 700,
-          },
-          {
-            name: "Cairo",
-            data: semibold,
-            style: "normal",
-            weight: 600,
-          },
-        ],
-        logoSrc: `data:image/png;base64,${logoBuffer.toString("base64")}`,
-      };
-    })();
+        return {
+          fonts: [
+            {
+              name: "Cairo",
+              data: extrabold,
+              style: "normal",
+              weight: 800,
+            },
+            {
+              name: "Cairo",
+              data: bold,
+              style: "normal",
+              weight: 700,
+            },
+            {
+              name: "Cairo",
+              data: semibold,
+              style: "normal",
+              weight: 600,
+            },
+          ],
+          logoSrc,
+        };
+      })(),
+    };
   }
-  return cached;
+  return cached.promise;
 }
 
 /**

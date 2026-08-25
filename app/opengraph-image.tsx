@@ -11,8 +11,8 @@ import {
 export const alt = ar.Meta.ogImageAlt;
 export const size = OG_SIZE;
 export const contentType = "image/png";
-/** Bake at build so production serves a stable PNG without runtime satori work. */
-export const dynamic = "force-static";
+/** Runtime so `DEMO_MODE` can swap the mark without a rebuild. */
+export const dynamic = "force-dynamic";
 
 /**
  * Default brand Open Graph card — logo, site name, tagline.

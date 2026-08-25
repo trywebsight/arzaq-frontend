@@ -23,7 +23,7 @@ pnpm start
 
 Copy `.env.example` → `.env.local`. Mock mode defaults on (`NEXT_PUBLIC_MOCK_MODE=true`).
 
-In Docker/Dokploy, set **runtime** `MOCK_MODE` / `API_URL` / `SITE_URL` (or `NEXT_PUBLIC_*` aliases) and restart — no rebuild for those. See [`docs/frontend/integration.md`](docs/frontend/integration.md).
+In Docker/Dokploy, set **runtime** `MOCK_MODE` / `API_URL` / `SITE_URL` / `DEMO_MODE` (or `NEXT_PUBLIC_*` aliases) and restart — no rebuild for those. See [`docs/frontend/integration.md`](docs/frontend/integration.md).
 
 ## Docker
 

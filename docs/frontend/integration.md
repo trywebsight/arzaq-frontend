@@ -14,6 +14,8 @@
 | `MEDIA_HOST` / `NEXT_PUBLIC_MEDIA_HOST` | *(unset)* | Informational | CDN hint; `next/image` allows any http(s) host via `hostname: "**"` (build-time pattern, runtime hosts OK) |
 | `MOCK_DELAY` / `NEXT_PUBLIC_MOCK_DELAY` | `350` | **Yes** | Mock latency (ms) |
 | `MOCK_STATE` / `NEXT_PUBLIC_MOCK_STATE` | `ok` | **Yes** | Force `ok` \| `loading` \| `error` \| `empty` \| `slow` |
+| `DEMO_MODE` | `false` | **Yes** | `true` swaps navbar / footer / OG logos for Websight demo marks |
+| `NEXT_PUBLIC_DEMO_MODE` | `false` | Via entrypoint | Alias; promoted to `DEMO_MODE` at container start |
 
 ### Runtime vs build (Dokploy)
 
@@ -21,11 +23,12 @@
 | --- | --- | --- |
 | Mock on/off + API origin | **No** — set runtime env and **restart** the container | `MOCK_MODE=false` + `API_URL=https://api…` (or `NEXT_PUBLIC_*` aliases) |
 | Public site origin | **No** | `SITE_URL=https://…` |
+| Demo logos (Websight) | **No** | `DEMO_MODE=true` (or `NEXT_PUBLIC_DEMO_MODE=true`) |
 | CMS / Unsplash image hosts | **No** for `next/image` | Permissive `remotePatterns` (`hostname: "**"`). Optional `MEDIA_HOST` is documentation only |
 
 `NEXT_PUBLIC_*` values are normally inlined at `pnpm build`. This app avoids that lock-in for the data layer by:
 
-1. Reading **non-public** `MOCK_MODE` / `API_URL` / `SITE_URL` first on the Node server.
+1. Reading **non-public** `MOCK_MODE` / `API_URL` / `SITE_URL` / `DEMO_MODE` first on the Node server.
 2. `docker-entrypoint.sh` copying Dokploy `NEXT_PUBLIC_*` into those names when unset.
 3. Browser TanStack Query / contact POST going through same-origin `/api/proxy/*` so the server resolves env (not a baked client constant).
 
@@ -51,6 +54,9 @@ MOCK_MODE=false
 
 # Staging / custom public host (Slack & WhatsApp og:image)
 SITE_URL=https://example.com
+
+# Demo / sales — Websight logos in the header, footer, and OG cards
+DEMO_MODE=true
 ```
 
 Single choke point: `lib/api/client.ts` (`resolveMockMode` / `apiFetch`). Feature `queries.ts` / hooks stay unchanged.

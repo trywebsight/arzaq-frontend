@@ -2,16 +2,15 @@ import type { ComponentType } from "react";
 import { getTranslations } from "next-intl/server";
 import { Phone, Mail } from "lucide-react";
 
+import { SiteLogo } from "@/components/brand/site-logo";
 import { Container } from "@/components/common/container";
 import { HapticLink } from "@/components/common/haptic-link";
-import { SmartImage } from "@/components/common/smart-image";
 import { Button } from "@/components/ui/button";
 import { getSiteSettings } from "@/features/settings/server";
 import {
   resolveContact,
   resolveSocials,
 } from "@/features/settings/merge";
-import { assets } from "@/lib/assets";
 import {
   FOOTER_LINK_COLUMNS,
   LEGAL_LINKS,
@@ -74,7 +73,13 @@ const SOCIAL_ICONS: Record<SocialKey, ComponentType<{ className?: string }>> = {
  * Site footer — brand, two link columns, contact, legal row.
  * Contact / socials prefer `GET /settings` when present.
  */
-export async function Footer({ className }: { className?: string }) {
+export async function Footer({
+  className,
+  demoMode = false,
+}: {
+  className?: string;
+  demoMode?: boolean;
+}) {
   const [t, tNav, settings] = await Promise.all([
     getTranslations("Footer"),
     getTranslations("Nav"),
@@ -93,8 +98,9 @@ export async function Footer({ className }: { className?: string }) {
         <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-8">
           <div className="flex flex-col gap-5">
             <HapticLink href="/" aria-label={t("logoAlt")} className="w-fit">
-              <SmartImage
-                {...assets.logoStacked}
+              <SiteLogo
+                variant="stacked"
+                demo={demoMode}
                 alt={t("logoAlt")}
                 className="h-14 w-auto"
                 sizes="56px"
