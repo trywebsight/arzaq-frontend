@@ -28,7 +28,7 @@ export function containsArabic(text: string): boolean {
  *
  * @param text - Logical (storage-order) Arabic or mixed string.
  * @example
- * satoriRtlText("أرزاق العقارية") // → "العقارية أرزاق" for LTR word placement
+ * satoriRtlText("ويبسايت العقارية") // → "العقارية ويبسايت" for LTR word placement
  */
 export function satoriRtlText(text: string): string {
   if (!text || !containsArabic(text)) return text;

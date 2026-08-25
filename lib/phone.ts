@@ -6,7 +6,7 @@ import {
   parsePhoneNumberFromString,
 } from "libphonenumber-js";
 
-/** Default dial region for Arzaq (Kuwait). */
+/** Default dial region for Websight (Kuwait). */
 export const DEFAULT_PHONE_COUNTRY: CountryCode = "KW";
 
 /**

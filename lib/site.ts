@@ -153,9 +153,9 @@ export type SocialLink = {
 
 /** Ordered social links. Pick the icon in the consuming component. */
 export const SOCIAL_LINKS: readonly SocialLink[] = [
-  { key: "instagram", href: "https://instagram.com/arzaq" },
+  { key: "instagram", href: "https://instagram.com/websight" },
   { key: "whatsapp", href: CONTACT.whatsappHref },
-  { key: "x", href: "https://x.com/arzaq" },
+  { key: "x", href: "https://x.com/websight" },
 ] as const;
 
 /** Legal links rendered in the footer bottom row. */

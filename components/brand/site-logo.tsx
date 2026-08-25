@@ -11,7 +11,7 @@ export type SiteLogoProps = {
   /** `stacked` is the square mark; `wordmark` is the wide lockup. */
   variant: SiteLogoVariant;
   /**
-   * When true, render the Websight demo marks instead of Arzaq assets.
+   * When true, render the Websight SVG marks instead of the PNG lockups.
    * Driven by `DEMO_MODE` / `NEXT_PUBLIC_DEMO_MODE`.
    */
   demo?: boolean;

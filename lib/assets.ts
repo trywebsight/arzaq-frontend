@@ -49,9 +49,9 @@ export const assets = {
   ),
 
   /** Stacked line-art logo (building mark + wordmark). Navbar and footer. */
-  logoStacked: asset("/logo-stacked.png", 90, 114, "أرزاق العقارية"),
-  /** Horizontal serif "ARZAQ" wordmark. Mobile header. */
-  logoWordmark: asset("/logo-wordmark.png", 238, 72, "أرزاق"),
+  logoStacked: asset("/logo-stacked.png", 90, 114, "ويبسايت العقارية"),
+  /** Horizontal serif "WEBSIGHT" wordmark. Mobile header. */
+  logoWordmark: asset("/logo-wordmark.png", 238, 72, "ويبسايت"),
 
   /** Wide 16:9-ish property photography (1056x560). */
   propertyVillaPool: asset(
@@ -105,9 +105,9 @@ export const assets = {
    * 656x652 team portraits. These are shot on a solid black background —
    * place them on a dark or gradient surface, never assume a white cut-out.
    */
-  team01: asset("/team-01.png", 656, 652, "أحد أعضاء فريق أرزاق العقارية"),
-  team02: asset("/team-02.png", 656, 652, "أحد أعضاء فريق أرزاق العقارية"),
-  team03: asset("/team-03.png", 656, 652, "أحد أعضاء فريق أرزاق العقارية"),
+  team01: asset("/team-01.png", 656, 652, "أحد أعضاء فريق ويبسايت العقارية"),
+  team02: asset("/team-02.png", 656, 652, "أحد أعضاء فريق ويبسايت العقارية"),
+  team03: asset("/team-03.png", 656, 652, "أحد أعضاء فريق ويبسايت العقارية"),
 } as const satisfies Record<string, ImageAsset>;
 
 export type AssetKey = keyof typeof assets;

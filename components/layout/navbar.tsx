@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
  * bar with circular menu toggle (right) + wordmark (left) on mobile.
  * Active nav item uses a GSAP Flip gray pill.
  *
- * @param demoMode - When true, Websight marks replace Arzaq logos (`DEMO_MODE`).
+ * @param demoMode - When true, Websight marks replace the PNG logos (`DEMO_MODE`).
  */
 export function Navbar({ demoMode = false }: { demoMode?: boolean }) {
   const t = useTranslations("Nav");
