@@ -1,9 +1,10 @@
 #!/bin/sh
 set -eu
 
-# Promote Dokploy / compose NEXT_PUBLIC_* runtime env into server-readable
-# names when the non-prefixed form is unset. Code prefers MOCK_MODE, API_URL,
-# SITE_URL, MEDIA_HOST, DEMO_MODE, etc. — those are never baked into the JS bundle.
+# Promote Dokploy / compose NEXT_PUBLIC_* env into server-readable names when
+# the non-prefixed form is unset. Used at image build (`npm run build`) and at
+# container start. Code prefers MOCK_MODE, API_URL, SITE_URL, MEDIA_HOST,
+# DEMO_MODE, etc.
 
 export MOCK_MODE="${MOCK_MODE:-${NEXT_PUBLIC_MOCK_MODE-}}"
 export USE_MOCKS="${USE_MOCKS:-${NEXT_PUBLIC_USE_MOCKS-}}"

@@ -31,4 +31,4 @@ jobs:
           echo "$PRIVATE_KEY" > private_key
           chmod 600 private_key
           ssh -i private_key -o StrictHostKeyChecking=no "$USER@$HOST" \
-            "sudo bash /root/arzaq/redeploy_frontend_staging.sh"
+            "sudo bash /root/arzaq/redeploy_frontend_staging.sh && (sudo docker container prune -f; sudo docker image prune -af; sudo docker builder prune -af; true)"

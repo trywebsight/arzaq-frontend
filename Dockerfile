@@ -1,46 +1,99 @@
 # syntax=docker/dockerfile:1
+#
+# Dokploy:
+# - Build type = Dockerfile, leave "Docker Build Stage" empty (must ship `runner`).
+# - Copy every env key into Environment → Build Time Arguments AND runtime env.
+# - ARG is per-stage; ENV bakes the value into the image so logos/API flags stick
+#   after a rebuild even when runtime injection is ignored.
 
 FROM node:20-bookworm-slim AS base
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json ./
+RUN npm install --no-audit --no-fund \
+  && npm cache clean --force
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Optional build-time fallback for metadataBase only. Mock/API/media/demo
-# for the data layer are resolved at container runtime — do not bake them here.
-ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
-RUN pnpm build
+
+ARG SITE_URL
+ARG API_URL
+ARG MOCK_MODE
+ARG MEDIA_HOST
+ARG USE_MOCKS
+ARG MOCK_DELAY
+ARG MOCK_STATE
+ARG DEMO_MODE
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_MOCK_MODE
+ARG NEXT_PUBLIC_MEDIA_HOST
+ARG NEXT_PUBLIC_USE_MOCKS
+ARG NEXT_PUBLIC_MOCK_DELAY
+ARG NEXT_PUBLIC_MOCK_STATE
+ARG NEXT_PUBLIC_DEMO_MODE
+
+ENV SITE_URL=$SITE_URL \
+    API_URL=$API_URL \
+    MOCK_MODE=$MOCK_MODE \
+    MEDIA_HOST=$MEDIA_HOST \
+    USE_MOCKS=$USE_MOCKS \
+    MOCK_DELAY=$MOCK_DELAY \
+    MOCK_STATE=$MOCK_STATE \
+    DEMO_MODE=$DEMO_MODE \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_MOCK_MODE=$NEXT_PUBLIC_MOCK_MODE \
+    NEXT_PUBLIC_MEDIA_HOST=$NEXT_PUBLIC_MEDIA_HOST \
+    NEXT_PUBLIC_USE_MOCKS=$NEXT_PUBLIC_USE_MOCKS \
+    NEXT_PUBLIC_MOCK_DELAY=$NEXT_PUBLIC_MOCK_DELAY \
+    NEXT_PUBLIC_MOCK_STATE=$NEXT_PUBLIC_MOCK_STATE \
+    NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE
+
+RUN chmod +x docker-entrypoint.sh \
+  && ./docker-entrypoint.sh npm run build \
+  && rm -rf /root/.npm /tmp/*
 
 FROM base AS runner
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-# Runtime (Dokploy Environment / compose). Prefer non-public names; NEXT_PUBLIC_*
-# aliases are promoted by docker-entrypoint.sh. Restart container after changes
-# — no image rebuild needed for mock/API/site/demo logos.
-ENV SITE_URL=
-ENV API_URL=
-ENV MOCK_MODE=
-ENV MEDIA_HOST=
-ENV USE_MOCKS=
-ENV MOCK_DELAY=
-ENV MOCK_STATE=
-ENV DEMO_MODE=
-ENV NEXT_PUBLIC_SITE_URL=
-ENV NEXT_PUBLIC_API_URL=
-ENV NEXT_PUBLIC_MOCK_MODE=
-ENV NEXT_PUBLIC_MEDIA_HOST=
-ENV NEXT_PUBLIC_USE_MOCKS=
-ENV NEXT_PUBLIC_MOCK_DELAY=
-ENV NEXT_PUBLIC_MOCK_STATE=
-ENV NEXT_PUBLIC_DEMO_MODE=
+ARG SITE_URL
+ARG API_URL
+ARG MOCK_MODE
+ARG MEDIA_HOST
+ARG USE_MOCKS
+ARG MOCK_DELAY
+ARG MOCK_STATE
+ARG DEMO_MODE
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_MOCK_MODE
+ARG NEXT_PUBLIC_MEDIA_HOST
+ARG NEXT_PUBLIC_USE_MOCKS
+ARG NEXT_PUBLIC_MOCK_DELAY
+ARG NEXT_PUBLIC_MOCK_STATE
+ARG NEXT_PUBLIC_DEMO_MODE
+
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    SITE_URL=$SITE_URL \
+    API_URL=$API_URL \
+    MOCK_MODE=$MOCK_MODE \
+    MEDIA_HOST=$MEDIA_HOST \
+    USE_MOCKS=$USE_MOCKS \
+    MOCK_DELAY=$MOCK_DELAY \
+    MOCK_STATE=$MOCK_STATE \
+    DEMO_MODE=$DEMO_MODE \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_MOCK_MODE=$NEXT_PUBLIC_MOCK_MODE \
+    NEXT_PUBLIC_MEDIA_HOST=$NEXT_PUBLIC_MEDIA_HOST \
+    NEXT_PUBLIC_USE_MOCKS=$NEXT_PUBLIC_USE_MOCKS \
+    NEXT_PUBLIC_MOCK_DELAY=$NEXT_PUBLIC_MOCK_DELAY \
+    NEXT_PUBLIC_MOCK_STATE=$NEXT_PUBLIC_MOCK_STATE \
+    NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs

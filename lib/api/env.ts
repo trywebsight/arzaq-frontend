@@ -1,10 +1,10 @@
 /**
  * Runtime env resolution.
  *
- * Server / Docker runtime prefers non-public names (`MOCK_MODE`, `API_URL`,
- * `DEMO_MODE`, …) so Dokploy can flip them without a rebuild. `NEXT_PUBLIC_*`
- * remains as a fallback (local `.env` / legacy) and is promoted to the
- * non-public names by `docker-entrypoint.sh` when unset.
+ * Server / Docker prefers non-public names (`MOCK_MODE`, `API_URL`,
+ * `DEMO_MODE`, …). `NEXT_PUBLIC_*` remains as a fallback (local `.env` /
+ * legacy). Docker bakes Dokploy **Build Time Arguments** into the image via
+ * `ARG`/`ENV`; `docker-entrypoint.sh` also promotes aliases when unset.
  *
  * Access env via dynamic keys so production server code is not locked to
  * build-time `NEXT_PUBLIC_*` string replacements.
