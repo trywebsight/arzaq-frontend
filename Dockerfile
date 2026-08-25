@@ -1,19 +1,22 @@
 # syntax=docker/dockerfile:1
 #
 # Dokploy:
-# - Build type = Dockerfile, leave "Docker Build Stage" empty (must ship `runner`).
-# - Copy every env key into Environment → Build Time Arguments AND runtime env.
-# - ARG is per-stage; ENV bakes the value into the image so logos/API flags stick
-#   after a rebuild even when runtime injection is ignored.
+# - Leave "Docker Build Stage" empty so the small `runner` image is what runs.
+# - Put env keys in Environment AND Build Time Arguments (ARG is per-stage).
+# - If Advanced → Patches rewrites this file, delete that patch or keep it in
+#   sync — a stale pnpm patch is what broke the last deploy.
 
 FROM node:20-bookworm-slim AS base
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    PNPM_HOME="/pnpm" \
+    PATH="/pnpm:$PATH"
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json ./
-RUN npm install --no-audit --no-fund \
-  && npm cache clean --force
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN --mount=type=cache,id=pnpm-arzaq,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
@@ -54,8 +57,7 @@ ENV SITE_URL=$SITE_URL \
     NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE
 
 RUN chmod +x docker-entrypoint.sh \
-  && ./docker-entrypoint.sh npm run build \
-  && rm -rf /root/.npm /tmp/*
+  && ./docker-entrypoint.sh pnpm build
 
 FROM base AS runner
 ARG SITE_URL
@@ -95,7 +97,11 @@ ENV NODE_ENV=production \
     NEXT_PUBLIC_MOCK_STATE=$NEXT_PUBLIC_MOCK_STATE \
     NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE
 
-RUN addgroup --system --gid 1001 nodejs \
+WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates wget \
+  && rm -rf /var/lib/apt/lists/* \
+  && addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
@@ -105,5 +111,7 @@ COPY --chmod=755 docker-entrypoint.sh ./docker-entrypoint.sh
 
 USER nextjs
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/ || exit 1
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "server.js"]

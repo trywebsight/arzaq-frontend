@@ -37,7 +37,7 @@ docker build -t arzaq-frontend \
 docker run --rm -p 3000:3000 arzaq-frontend
 ```
 
-Uses npm in the build stage and Next.js `output: "standalone"` so the running image has no pnpm store. After deploy, prune leftovers with `scripts/docker-host-cleanup.sh` on the host.
+Uses pnpm in the builder (BuildKit cache, not in the image) and Next.js `output: "standalone"` for the running container. After deploy, prune leftovers with `scripts/docker-host-cleanup.sh` on the host.
 
 ## Docs
 

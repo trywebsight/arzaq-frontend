@@ -2,7 +2,7 @@
 set -eu
 
 # Promote Dokploy / compose NEXT_PUBLIC_* env into server-readable names when
-# the non-prefixed form is unset. Used at image build (`npm run build`) and at
+# the non-prefixed form is unset. Used at image build (`pnpm build`) and at
 # container start. Code prefers MOCK_MODE, API_URL, SITE_URL, MEDIA_HOST,
 # DEMO_MODE, etc.
 
