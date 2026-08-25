@@ -8,7 +8,6 @@ import { CtaBand } from "@/components/layout/cta-band";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
-import { resolveDemoMode } from "@/lib/api/env";
 
 export type SiteShellProps = {
   children: React.ReactNode;
@@ -40,7 +39,7 @@ export type SiteShellProps = {
  */
 export async function SiteShell({ children, showCta = true }: SiteShellProps) {
   await connection();
-  const demoMode = resolveDemoMode();
+  const demoMode = true;
 
   return (
     <CtaVisibilityProvider defaultVisible={showCta}>
