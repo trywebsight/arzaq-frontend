@@ -74,6 +74,15 @@ export async function GET(req: NextRequest, context: RouteContext) {
   }
 }
 
+/**
+ * Visitor IP from the hosting proxy, forwarded so the backend rate-limits and
+ * records each visitor rather than this server.
+ */
+function clientIp(req: NextRequest): string | undefined {
+  const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || req.headers.get("x-real-ip")?.trim() || undefined;
+}
+
 export async function POST(req: NextRequest, context: RouteContext) {
   const { path: segments } = await context.params;
   const path = apiPathFromParams(segments);
@@ -94,10 +103,12 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
 
   try {
+    const ip = clientIp(req);
     const data = await apiPost<unknown>(path, body, {
       searchParams: searchParamsRecord(req),
       signal: req.signal,
       mockState,
+      headers: ip ? { "X-Forwarded-For": ip } : undefined,
     });
     return NextResponse.json(data);
   } catch (error) {
