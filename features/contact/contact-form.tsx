@@ -6,6 +6,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
 
 import { submitContact } from "@/features/contact/api";
+import { ApiError } from "@/lib/api/client";
 import {
   createContactSchema,
   type ContactFormValues,
@@ -25,6 +26,27 @@ import { cn } from "@/lib/utils";
 
 const inputClassName =
   "h-12 rounded-xl border-border bg-background px-4 text-base md:text-base";
+
+/** Server field → our own error copy (backend messages name raw field keys). */
+const FIELD_ERROR_KEYS = {
+  name: "errors.nameRequired",
+  email: "errors.emailInvalid",
+  phone: "errors.phoneInvalid",
+  message: "errors.messageMin",
+} as const;
+
+type RejectableField = keyof typeof FIELD_ERROR_KEYS;
+
+/** Fields the backend rejected with a 422, so they can be flagged inline. */
+function rejectedFields(error: unknown): RejectableField[] {
+  if (!(error instanceof ApiError) || error.status !== 422) return [];
+  const errors = (error.body as { errors?: Record<string, unknown> } | undefined)
+    ?.errors;
+  if (!errors) return [];
+  return (Object.keys(FIELD_ERROR_KEYS) as RejectableField[]).filter(
+    (field) => field in errors,
+  );
+}
 
 /**
  * Contact form: name + email row, phone (country + national), message, submit.
@@ -72,7 +94,14 @@ export function ContactForm({ className }: { className?: string }) {
       await submitContact({ ...values, country: region, phone });
       setSucceeded(true);
       form.reset();
-    } catch {
+    } catch (error) {
+      const rejected = rejectedFields(error);
+      if (rejected.length > 0) {
+        for (const field of rejected) {
+          form.setError(field, { message: t(FIELD_ERROR_KEYS[field]) });
+        }
+        return;
+      }
       form.setError("root", { message: t("errors.submitFailed") });
     }
   });
