@@ -9,8 +9,8 @@ import type {
   GovernorateId,
   Property,
   PropertyFilters,
-  PropertyKind,
   PropertyPurpose,
+  PropertyTypeOption,
 } from "@/features/properties/types";
 import type { Post } from "@/features/blog/types";
 import type { Service } from "@/features/services/types";
@@ -42,7 +42,7 @@ function optionalNumber(value: string | undefined): number | undefined {
 function filterProperties(query: MockQuery): Property[] {
   const filters: PropertyFilters = {
     purpose: query.purpose as PropertyPurpose | undefined,
-    kind: query.kind as PropertyKind | undefined,
+    kind: query.kind,
     city: query.city,
     governorate: query.governorate as GovernorateId | undefined,
     featured:
@@ -84,6 +84,12 @@ function filterProperties(query: MockQuery): Property[] {
   return limit(matched, query);
 }
 
+function propertyTypes(): PropertyTypeOption[] {
+  const byId = new Map<string, string>();
+  for (const property of properties) byId.set(property.kind, property.kindLabel);
+  return [...byId].map(([id, label]) => ({ id, label }));
+}
+
 function filterPosts(query: MockQuery): Post[] {
   const matched = query.category
     ? posts.filter((post) => post.category === query.category)
@@ -111,6 +117,7 @@ const resolvers: Record<string, Resolver> = {
       properties.find((item) => item.slug === key || item.id === key) ?? null
     );
   },
+  "property-types": () => propertyTypes(),
   team: ({ segments, query }) => {
     if (segments.length === 0) return filterTeam(query);
     const key = segments[0];

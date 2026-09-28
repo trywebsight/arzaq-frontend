@@ -1,6 +1,7 @@
 /** First path segment allowlist for the same-origin `/api/proxy` BFF. */
 const ALLOWED_ROOTS = new Set([
   "properties",
+  "property-types",
   "team",
   "posts",
   "services",

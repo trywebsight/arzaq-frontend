@@ -4,6 +4,7 @@ import { queryKeys } from "@/lib/query/keys";
 import {
   fetchProperties,
   fetchProperty,
+  fetchPropertyTypes,
 } from "@/features/properties/api";
 import type { PropertyFilters } from "@/features/properties/types";
 
@@ -30,4 +31,12 @@ export const propertyQuery = (idOrSlug: string) =>
   queryOptions({
     queryKey: queryKeys.properties.detail(idOrSlug),
     queryFn: ({ signal }) => fetchProperty(idOrSlug, signal),
+  });
+
+/** Options for the type filter. Rarely changes, so it stays fresh for 5 minutes. */
+export const propertyTypesQuery = () =>
+  queryOptions({
+    queryKey: queryKeys.properties.types(),
+    queryFn: ({ signal }) => fetchPropertyTypes(signal),
+    staleTime: 5 * 60 * 1000,
   });

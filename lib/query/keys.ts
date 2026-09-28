@@ -23,6 +23,7 @@ export const queryKeys = {
     details: () => [...queryKeys.properties.all, "detail"] as const,
     detail: (idOrSlug: string) =>
       [...queryKeys.properties.details(), idOrSlug] as const,
+    types: () => [...queryKeys.properties.all, "types"] as const,
   },
 
   team: {

@@ -37,8 +37,12 @@ export const DURATION = {
   count: 1.6,
 } as const;
 
-/** Default ScrollTrigger start for entrance animations. */
-export const SCROLL_START = "top 85%";
+/**
+ * Default ScrollTrigger start for entrance animations. `clamp()` keeps the
+ * start within the scrollable range, so sections at the very bottom of a short
+ * page (e.g. the CTA band above the footer) still play.
+ */
+export const SCROLL_START = "clamp(top 85%)";
 
 /**
  * Media queries handed to `gsap.matchMedia()`.

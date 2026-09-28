@@ -23,12 +23,37 @@ function firstEnv(...names: string[]): string | undefined {
   return undefined;
 }
 
+function envFlag(value: string | undefined): boolean | undefined {
+  if (value === undefined || value === "") return undefined;
+  const normalised = value.toLowerCase();
+  if (normalised === "false" || normalised === "0" || normalised === "off") {
+    return false;
+  }
+  if (normalised === "true" || normalised === "1" || normalised === "on") {
+    return true;
+  }
+  return undefined;
+}
+
 /**
  * Whether the app serves typed fixtures from `mocks/` instead of HTTP.
  *
- * Locked on — Dokploy env is not reaching the process.
+ * API URL is ignored while mocks are on — mock mode always wins.
+ *
+ * Resolution order:
+ * 1. `MOCK_MODE` (runtime, preferred in Docker)
+ * 2. `USE_MOCKS` (runtime legacy alias)
+ * 3. `NEXT_PUBLIC_MOCK_MODE`
+ * 4. `NEXT_PUBLIC_USE_MOCKS`
+ * 5. Default `true` so local DX needs no env file
  */
 export function resolveMockMode(): boolean {
+  const mockMode = envFlag(firstEnv("MOCK_MODE", "NEXT_PUBLIC_MOCK_MODE"));
+  if (mockMode !== undefined) return mockMode;
+
+  const useMocks = envFlag(firstEnv("USE_MOCKS", "NEXT_PUBLIC_USE_MOCKS"));
+  if (useMocks !== undefined) return useMocks;
+
   return true;
 }
 
@@ -59,8 +84,11 @@ export function resolveMockDelay(): number {
 /**
  * Whether chrome logos swap to the Websight demo marks.
  *
- * Locked on — Dokploy env is not reaching the process.
+ * Resolution order:
+ * 1. `DEMO_MODE` (runtime, preferred in Docker)
+ * 2. `NEXT_PUBLIC_DEMO_MODE`
+ * 3. Default `false`
  */
 export function resolveDemoMode(): boolean {
-  return true;
+  return envFlag(firstEnv("DEMO_MODE", "NEXT_PUBLIC_DEMO_MODE")) ?? false;
 }

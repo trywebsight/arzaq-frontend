@@ -33,7 +33,7 @@ export type CountUpProps = {
   ease?: string;
   /** @default "scroll" */
   trigger?: "scroll" | "mount";
-  /** ScrollTrigger `start`. @default "top 85%" */
+  /** ScrollTrigger `start`. @default "clamp(top 85%)" */
   start?: string;
   /** @default true */
   once?: boolean;

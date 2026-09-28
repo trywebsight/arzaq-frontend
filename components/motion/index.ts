@@ -11,4 +11,6 @@ export { CountUp } from "./count-up";
 export type { CountUpProps } from "./count-up";
 
 export { Magnetic } from "./magnetic";
+
+export { ScrollTriggerRefresher } from "./scroll-trigger-refresher";
 export type { MagneticProps } from "./magnetic";

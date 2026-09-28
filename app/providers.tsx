@@ -6,6 +6,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/query/get-query-client";
 import { siteConfig } from "@/lib/site";
 import { DirectionProvider } from "@/components/ui/direction";
+import { ScrollTriggerRefresher } from "@/components/motion/scroll-trigger-refresher";
 
 const ReactQueryDevtools = React.lazy(() =>
   import("@tanstack/react-query-devtools").then((mod) => ({
@@ -26,6 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <DirectionProvider dir={siteConfig.direction}>{children}</DirectionProvider>
+      <ScrollTriggerRefresher />
       {process.env.NODE_ENV === "development" ? (
         <React.Suspense fallback={null}>
           <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />

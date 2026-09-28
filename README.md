@@ -1,6 +1,6 @@
-# Websight Real Estate — Arabic RTL marketing frontend (Next.js)
+# Arzaq Real Estate — Arabic RTL marketing frontend (Next.js)
 
-Public site for ويبسايت العقارية. Next.js App Router, pnpm, TanStack Query + mocks, GSAP motion.
+Public site for أرزاق العقارية. Next.js App Router, pnpm, TanStack Query + mocks, GSAP motion.
 
 ## Branches
 

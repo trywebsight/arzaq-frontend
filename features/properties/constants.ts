@@ -1,4 +1,4 @@
-import type { GovernorateId, PropertyKind, PropertyPurpose } from "./types";
+import type { GovernorateId, PropertyPurpose } from "./types";
 
 /** Fixed page size for the properties listing grid (2 × 3 on desktop). */
 export const PROPERTIES_PAGE_SIZE = 6;
@@ -19,17 +19,6 @@ export const PROPERTY_PURPOSES = [
   "rent",
   "exchange",
 ] as const satisfies readonly PropertyPurpose[];
-
-/** Kind options for the classification filter. Labels: `PropertiesPage.filters.kind.*`. */
-export const PROPERTY_KINDS = [
-  "villa",
-  "apartment",
-  "floor",
-  "land",
-  "building",
-  "office",
-  "chalet",
-] as const satisfies readonly PropertyKind[];
 
 export type PriceRangeId =
   | "0-1000"

@@ -8,7 +8,7 @@ import {
   parseListingParams,
 } from "@/features/properties/listing-params";
 import { PropertiesListing } from "@/features/properties/properties-listing";
-import { propertiesQuery } from "@/features/properties/queries";
+import { propertiesQuery, propertyTypesQuery } from "@/features/properties/queries";
 import {
   mockStateFromSearchParams,
   shouldPrefetch,
@@ -41,9 +41,12 @@ async function prefetchPropertiesListing(
   const listing = parseListingParams(searchParams);
 
   if (shouldPrefetch(mockState)) {
-    await queryClient.prefetchQuery(
-      propertiesQuery(listingToPropertyFilters(listing)),
-    );
+    await Promise.all([
+      queryClient.prefetchQuery(
+        propertiesQuery(listingToPropertyFilters(listing)),
+      ),
+      queryClient.prefetchQuery(propertyTypesQuery()),
+    ]);
   }
 
   return { dehydratedState: dehydrate(queryClient), listing };

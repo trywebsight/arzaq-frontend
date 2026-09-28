@@ -47,9 +47,11 @@ export function PropertyCard({ property, className }: PropertyCardProps) {
   const chips = [
     property.kindLabel,
     property.district || property.city,
-    t("card.area", { area: formatLatn(property.area) }),
+    property.area != null
+      ? t("card.area", { area: formatLatn(property.area) })
+      : null,
     priceLabel,
-  ];
+  ].filter((chip): chip is string => Boolean(chip));
 
   return (
     <HapticCard

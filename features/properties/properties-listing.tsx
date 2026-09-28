@@ -10,7 +10,6 @@ import {
   FILTER_ALL,
   GOVERNORATES,
   PRICE_RANGES,
-  PROPERTY_KINDS,
   PROPERTY_PURPOSES,
   type PriceRangeId,
 } from "@/features/properties/constants";
@@ -21,7 +20,10 @@ import {
   type ListingParamPatch,
   type ListingParams,
 } from "@/features/properties/listing-params";
-import { useProperties } from "@/features/properties/hooks";
+import {
+  useProperties,
+  usePropertyTypes,
+} from "@/features/properties/hooks";
 import { PropertyCard } from "@/features/properties/property-card";
 import { PropertiesListingGridSkeleton } from "@/features/properties/skeletons";
 import type {
@@ -348,6 +350,7 @@ function PropertyFilterControls({
   stacked?: boolean;
 }) {
   const t = useTranslations("PropertiesPage");
+  const propertyTypes = usePropertyTypes().data ?? [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -384,9 +387,9 @@ function PropertyFilterControls({
           }
         >
           <SelectItem value={FILTER_ALL}>{t("filters.kind.all")}</SelectItem>
-          {PROPERTY_KINDS.map((kind) => (
-            <SelectItem key={kind} value={kind}>
-              {t(`filters.kind.${kind}`)}
+          {propertyTypes.map((type) => (
+            <SelectItem key={type.id} value={type.id}>
+              {type.label}
             </SelectItem>
           ))}
         </FilterSelect>

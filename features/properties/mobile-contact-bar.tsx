@@ -27,6 +27,8 @@ export type MobileContactBarProps = {
   triggerRef: React.RefObject<HTMLElement | null>;
   /** Force-hide while overlays (lightbox) are open. */
   suppressed?: boolean;
+  /** Open `href` in a new tab (e.g. a WhatsApp link). */
+  external?: boolean;
   className?: string;
 };
 
@@ -54,6 +56,7 @@ export function MobileContactBar({
   ariaLabel,
   triggerRef,
   suppressed = false,
+  external = false,
   className,
 }: MobileContactBarProps) {
   const barRef = React.useRef<HTMLDivElement>(null);
@@ -191,6 +194,7 @@ export function MobileContactBar({
           >
             <HapticLink
               href={href}
+              external={external}
               aria-label={ariaLabel}
               tabIndex={suppressed ? -1 : undefined}
               haptics={false}

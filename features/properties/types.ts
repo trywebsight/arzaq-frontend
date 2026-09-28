@@ -3,15 +3,30 @@ import type { ImageAsset } from "@/lib/assets";
 /** What the listing is offered for. */
 export type PropertyPurpose = "sale" | "rent" | "exchange";
 
-/** Property category. Drives the first chip on the card. */
-export type PropertyKind =
-  | "villa"
-  | "apartment"
-  | "floor"
-  | "land"
-  | "building"
-  | "office"
-  | "chalet";
+/**
+ * Property category id. Live data uses the dashboard property type id (e.g. `"13"`);
+ * fixtures use readable keys (e.g. `"villa"`). Render `kindLabel`, never the id.
+ */
+export type PropertyKind = string;
+
+/** One option of the property type filter, from `GET /property-types`. */
+export type PropertyTypeOption = {
+  id: string;
+  label: string;
+};
+
+/** Hosted property video. */
+export type PropertyVideo = {
+  src: string;
+  /** MIME type, e.g. `video/mp4` or `video/quicktime`. */
+  type: string;
+};
+
+/** Map pin: the exact property when `coordinatesExact`, otherwise the neighbourhood centre. */
+export type PropertyCoordinates = {
+  lat: number;
+  lng: number;
+};
 
 /** Kuwait governorates used by listing filters and area pills. */
 export type GovernorateId =
@@ -40,13 +55,15 @@ export type Property = {
   /** Ready-to-render Arabic label for the kind chip. */
   kindLabel: string;
   /** Governorate key used by listing filters and area pills. */
-  governorate: GovernorateId;
+  governorate: GovernorateId | null;
+  /** Ready-to-render governorate name, e.g. "محافظة حولي". */
+  governorateLabel?: string | null;
   /** Governorate or city label, e.g. "مدينة الكويت". */
   city: string;
   /** District / block, e.g. "الشرق". */
   district: string;
-  /** Built-up area in square metres. Render with the `م²` unit. */
-  area: number;
+  /** Built-up area in square metres. Render with the `م²` unit. `null` when unknown. */
+  area: number | null;
   /** Asking price in Kuwaiti dinars. `null` means "price on request". */
   price: number | null;
   bedrooms: number | null;
@@ -60,6 +77,26 @@ export type Property = {
   floors?: number | null;
   /** Covered parking / garage spaces. Detail page only. */
   garage?: number | null;
+  /** Office reference shown to visitors, e.g. "SD0078". */
+  code?: string | null;
+  /** Full description. Detail page only; cards use `excerpt`. */
+  description?: string | null;
+  /** Number of apartments (investment buildings). */
+  apartments?: number | null;
+  /** Building condition label, e.g. "جديد". */
+  condition?: string | null;
+  /** Plot position label, e.g. "زاوية". */
+  plotPosition?: string | null;
+  /** Monthly rental income in Kuwaiti dinars. */
+  monthlyIncome?: number | null;
+  /** Gross annual return in percent, e.g. `7.03`. */
+  annualReturn?: number | null;
+  video?: PropertyVideo | null;
+  coordinates?: PropertyCoordinates | null;
+  /** `true` when `coordinates` is the property's own pin rather than its area. */
+  coordinatesExact?: boolean;
+  /** PACI Kuwait Finder link for the exact address. */
+  kuwaitFinderUrl?: string | null;
   /** Additional photos for the detail gallery. Falls back to `image` when empty. */
   gallery?: ImageAsset[];
   /** Primary photo. Null/missing src → muted placeholder (do not publish without one). */
@@ -69,6 +106,8 @@ export type Property = {
   contact: PropertyContact;
   /** ISO 8601 date string. */
   publishedAt: string;
+  /** ISO 8601 date string of the last edit. */
+  updatedAt?: string;
 };
 
 /** Server-side filters. Every field is optional; omit for "everything". */

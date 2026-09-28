@@ -71,7 +71,7 @@ const SOCIAL_ICONS: Record<SocialKey, ComponentType<{ className?: string }>> = {
 
 /**
  * Site footer — brand, two link columns, contact, legal row.
- * Contact / socials prefer `GET /settings` when present.
+ * Contact, socials and the about paragraph prefer `GET /settings` when present.
  */
 export async function Footer({
   className,
@@ -89,6 +89,7 @@ export async function Footer({
   const contact = resolveContact(settings);
   const socials = resolveSocials(settings);
   const address = contact.address?.trim() || t("contact.address");
+  const about = settings.footerAbout?.trim() || t("about");
 
   return (
     <footer
@@ -107,7 +108,7 @@ export async function Footer({
               />
             </HapticLink>
             <p className="max-w-sm text-sm/relaxed text-pretty text-ink-muted">
-              {t("about")}
+              {about}
             </p>
             <ul
               className="flex items-center gap-2"
@@ -196,7 +197,7 @@ export async function Footer({
 
       <div className="border-t border-border">
         <Container className="flex flex-col gap-3 py-5 text-sm text-ink-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>{t("copyright")}</p>
+          <p>{t("copyright", { year: new Date().getFullYear() })}</p>
           <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
             {LEGAL_LINKS.map((link) => (
               <li key={link.key}>

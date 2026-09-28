@@ -13,6 +13,7 @@
 export const endpoints = {
   properties: "/properties",
   property: (idOrSlug: string) => `/properties/${encodeURIComponent(idOrSlug)}`,
+  propertyTypes: "/property-types",
   team: "/team",
   teamMember: (idOrSlug: string) => `/team/${encodeURIComponent(idOrSlug)}`,
   posts: "/posts",

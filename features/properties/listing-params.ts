@@ -13,15 +13,8 @@ import type {
 } from "@/features/properties/types";
 
 const PURPOSES = new Set<PropertyPurpose>(["sale", "rent", "exchange"]);
-const KINDS = new Set<PropertyKind>([
-  "villa",
-  "apartment",
-  "floor",
-  "land",
-  "building",
-  "office",
-  "chalet",
-]);
+/** Type ids are dashboard ids (live) or readable keys (fixtures). */
+const KIND_PATTERN = /^[a-z0-9-]{1,40}$/i;
 const GOVERNORATE_SET = new Set<string>(GOVERNORATES);
 const PRICE_IDS = new Set(PRICE_RANGES.map((range) => range.id));
 
@@ -68,8 +61,8 @@ export function parseListingParams(
         ? (purposeRaw as PropertyPurpose)
         : undefined,
     kind:
-      kindRaw && KINDS.has(kindRaw as PropertyKind)
-        ? (kindRaw as PropertyKind)
+      kindRaw && KIND_PATTERN.test(kindRaw)
+        ? kindRaw
         : undefined,
     city:
       cityRaw && GOVERNORATE_SET.has(cityRaw)

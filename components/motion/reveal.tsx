@@ -45,7 +45,7 @@ export type RevealProps = {
    * @default "scroll"
    */
   trigger?: "scroll" | "mount";
-  /** ScrollTrigger `start`. @default "top 85%" */
+  /** ScrollTrigger `start`. @default "clamp(top 85%)" */
   start?: string;
   /** Replay every time the element re-enters. @default true (play once) */
   once?: boolean;

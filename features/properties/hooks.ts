@@ -6,6 +6,7 @@ import {
   featuredPropertiesQuery,
   propertiesQuery,
   propertyQuery,
+  propertyTypesQuery,
 } from "@/features/properties/queries";
 import type { PropertyFilters } from "@/features/properties/types";
 
@@ -19,4 +20,8 @@ export function useFeaturedProperties(limit = 3) {
 
 export function useProperty(idOrSlug: string) {
   return useQuery(propertyQuery(idOrSlug));
+}
+
+export function usePropertyTypes() {
+  return useQuery(propertyTypesQuery());
 }

@@ -158,7 +158,7 @@ export function propertyJsonLd(property: Property) {
       addressCountry: "KW",
     },
     floorSize:
-      property.area > 0
+      property.area != null && property.area > 0
         ? {
             "@type": "QuantitativeValue" as const,
             value: property.area,

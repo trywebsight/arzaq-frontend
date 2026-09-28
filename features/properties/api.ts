@@ -1,6 +1,10 @@
 import { apiFetch } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import type { Property, PropertyFilters } from "@/features/properties/types";
+import type {
+  Property,
+  PropertyFilters,
+  PropertyTypeOption,
+} from "@/features/properties/types";
 
 /** GET /properties */
 export function fetchProperties(
@@ -32,4 +36,11 @@ export function fetchProperty(
     signal,
     nullOn404: true,
   });
+}
+
+/** GET /property-types — types that currently have listings. */
+export function fetchPropertyTypes(
+  signal?: AbortSignal,
+): Promise<PropertyTypeOption[]> {
+  return apiFetch<PropertyTypeOption[]>(endpoints.propertyTypes, { signal });
 }

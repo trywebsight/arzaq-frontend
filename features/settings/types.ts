@@ -33,6 +33,8 @@ export type SiteSettings = {
   contact: SettingsContact | null;
   socials: SettingsSocial[];
   heroStats: SettingsHeroStat[];
+  /** Footer brand paragraph. When empty, UI reads `Footer.about` from messages. */
+  footerAbout?: string | null;
 };
 
 export type HomeHeroContent = {
@@ -65,6 +67,7 @@ export const EMPTY_SITE_SETTINGS: SiteSettings = {
   contact: null,
   socials: [],
   heroStats: [],
+  footerAbout: null,
 };
 
 /** Empty home shape with safe default limits. */
