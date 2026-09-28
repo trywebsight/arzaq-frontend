@@ -4,7 +4,8 @@ import { getTranslations } from "next-intl/server";
 
 import { JsonLd } from "@/components/seo";
 import { HomePageContent } from "@/features/home/home-page-content";
-import { fetchProperties } from "@/features/properties/api";
+import { featuredPropertiesQuery } from "@/features/properties/queries";
+import { getQueryClient } from "@/lib/query/get-query-client";
 import type { Property } from "@/features/properties/types";
 import { buildSeoPageMetadata } from "@/features/seo/merge";
 import {
@@ -36,7 +37,7 @@ async function featuredForJsonLd(
     return [];
   }
   try {
-    return await fetchProperties({ featured: true, limit });
+    return await getQueryClient().fetchQuery(featuredPropertiesQuery(limit));
   } catch {
     return [];
   }

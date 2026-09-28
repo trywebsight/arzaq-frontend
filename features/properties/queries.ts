@@ -23,9 +23,18 @@ export const propertiesQuery = (filters: PropertyFilters = {}) =>
     queryFn: ({ signal }) => fetchProperties(filters, signal),
   });
 
-/** The home page rail. Defaults to three featured listings. */
+/**
+ * The home page rail: featured listings, or the latest ones while none are
+ * marked featured, so the section is never empty when listings exist.
+ */
 export const featuredPropertiesQuery = (limit = 3) =>
-  propertiesQuery({ featured: true, limit });
+  queryOptions({
+    queryKey: queryKeys.properties.list({ featured: true, limit }),
+    queryFn: async ({ signal }) => {
+      const featured = await fetchProperties({ featured: true, limit }, signal);
+      return featured.length > 0 ? featured : fetchProperties({ limit }, signal);
+    },
+  });
 
 export const propertyQuery = (idOrSlug: string) =>
   queryOptions({
