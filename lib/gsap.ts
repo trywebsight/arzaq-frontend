@@ -38,11 +38,13 @@ export const DURATION = {
 } as const;
 
 /**
- * Default ScrollTrigger start for entrance animations. `clamp()` keeps the
- * start within the scrollable range, so sections at the very bottom of a short
- * page (e.g. the CTA band above the footer) still play.
+ * Default ScrollTrigger start for entrance animations. Deliberately not
+ * `clamp()`ed: clamping moves above-the-fold starts to exactly 0, and a trigger
+ * only fires once scroll passes its start, so content in view on load would
+ * wait for the first scroll. Positions are re-measured by `ScrollTriggerRefresher`
+ * after navigation and layout changes.
  */
-export const SCROLL_START = "clamp(top 85%)";
+export const SCROLL_START = "top 85%";
 
 /**
  * Media queries handed to `gsap.matchMedia()`.
