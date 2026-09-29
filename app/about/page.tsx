@@ -13,6 +13,7 @@ import { TeamSection } from "@/features/team/team-section";
 import { prefetchAboutQueries } from "@/lib/query/prefetch";
 import { breadcrumbJsonLd } from "@/lib/seo";
 import { buildSeoPageMetadata } from "@/features/seo/merge";
+import { getPageTexts } from "@/features/page-texts/server";
 
 type AboutPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -39,9 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function AboutPage({ searchParams }: AboutPageProps) {
   const params = await searchParams;
-  const [dehydratedState, tNav] = await Promise.all([
+  const [dehydratedState, tNav, pageTexts] = await Promise.all([
     prefetchAboutQueries(params),
     getTranslations("Nav"),
+    getPageTexts(),
   ]);
 
   return (
@@ -54,9 +56,9 @@ export default async function AboutPage({ searchParams }: AboutPageProps) {
       />
       <HydrationBoundary state={dehydratedState}>
         <main id="main" className="flex-1" tabIndex={-1}>
-          <AboutIntroSection />
+          <AboutIntroSection image={pageTexts.images.aboutIntro} />
           <AboutVisionSection />
-          <AboutMissionSection />
+          <AboutMissionSection image={pageTexts.images.aboutMission} />
           <AboutObjectivesSection />
           <TeamSection />
         </main>

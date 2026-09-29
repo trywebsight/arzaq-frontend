@@ -4,14 +4,23 @@ import { useTranslations } from "next-intl";
 
 import { Eyebrow, Section, SmartImage } from "@/components/common";
 import { Reveal } from "@/components/motion";
-import { assets } from "@/lib/assets";
+import { assets, type ImageAsset } from "@/lib/assets";
 import { cn } from "@/lib/utils";
 
 /**
  * About intro: eyebrow, two-column headline/body, then a contained cityscape
  * photo inside page gutters with rounded corners.
  */
-export function AboutIntroSection({ className }: { className?: string }) {
+/**
+ * @param image - Photo uploaded in the dashboard; falls back to the bundled one.
+ */
+export function AboutIntroSection({
+  className,
+  image,
+}: {
+  className?: string;
+  image?: ImageAsset | null;
+}) {
   const t = useTranslations("AboutPage.intro");
 
   return (
@@ -51,7 +60,7 @@ export function AboutIntroSection({ className }: { className?: string }) {
       >
         <div className="relative aspect-video w-full overflow-hidden rounded-card md:aspect-21/9">
           <SmartImage
-            src={assets.propertyTowerMarina.src}
+            src={(image ?? assets.propertyTowerMarina).src}
             alt={t("imageAlt")}
             fill
             priority

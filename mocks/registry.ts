@@ -19,6 +19,7 @@ import {
   EMPTY_SITE_SETTINGS,
 } from "@/features/settings/types";
 import type { TeamMember } from "@/features/team/types";
+import { EMPTY_PAGE_TEXTS } from "@/features/page-texts/types";
 
 export type MockQuery = Record<string, string>;
 
@@ -136,6 +137,7 @@ const resolvers: Record<string, Resolver> = {
   /** Planned CMS endpoints — return empty-safe shapes until fixtures exist. */
   settings: () => EMPTY_SITE_SETTINGS,
   home: () => EMPTY_HOME_CONTENT,
+  "page-texts": () => EMPTY_PAGE_TEXTS,
   faqs: () => EMPTY_FAQ_PAYLOAD,
   seo: () => null,
   legal: ({ segments }) => {

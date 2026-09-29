@@ -11,6 +11,7 @@ import {
 import { prefetchServicesQueries } from "@/lib/query/prefetch";
 import { breadcrumbJsonLd } from "@/lib/seo";
 import { buildSeoPageMetadata } from "@/features/seo/merge";
+import { getPageTexts } from "@/features/page-texts/server";
 
 type ServicesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -37,9 +38,10 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function ServicesPage({ searchParams }: ServicesPageProps) {
   const params = await searchParams;
-  const [dehydratedState, tNav] = await Promise.all([
+  const [dehydratedState, tNav, pageTexts] = await Promise.all([
     prefetchServicesQueries(params),
     getTranslations("Nav"),
+    getPageTexts(),
   ]);
 
   return (
@@ -54,7 +56,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
         <main id="main" className="flex-1" tabIndex={-1}>
           <ServicesIntroSection />
           <SellersSection />
-          <BuyersSection />
+          <BuyersSection image={pageTexts.images.servicesBuyers} />
         </main>
       </HydrationBoundary>
     </>

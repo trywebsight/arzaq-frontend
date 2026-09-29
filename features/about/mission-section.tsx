@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Eyebrow, HapticLink, Section, SmartImage } from "@/components/common";
 import { Magnetic, Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
-import { assets } from "@/lib/assets";
+import { assets, type ImageAsset } from "@/lib/assets";
 import { ROUTES } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +13,16 @@ import { cn } from "@/lib/utils";
  * Mission block: small rounded landscape at inline-start; large dark body +
  * contact-page pill at inline-end.
  */
-export function AboutMissionSection({ className }: { className?: string }) {
+/**
+ * @param image - Photo uploaded in the dashboard; falls back to the bundled one.
+ */
+export function AboutMissionSection({
+  className,
+  image,
+}: {
+  className?: string;
+  image?: ImageAsset | null;
+}) {
   const t = useTranslations("AboutPage.mission");
 
   return (
@@ -34,7 +43,7 @@ export function AboutMissionSection({ className }: { className?: string }) {
           className="relative aspect-5/4 w-full max-w-[18rem] shrink-0 overflow-hidden rounded-card sm:max-w-[20rem] md:aspect-4/3 md:w-[min(36%,20rem)] xl:w-[min(34%,22rem)]"
         >
           <SmartImage
-            src={assets.towerAlManar.src}
+            src={(image ?? assets.towerAlManar).src}
             alt={t("imageAlt")}
             fill
             sizes="(max-width: 768px) 20rem, 22rem"

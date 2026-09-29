@@ -24,6 +24,8 @@ export const endpoints = {
   faqs: "/faqs",
   settings: "/settings",
   home: "/home",
+  /** Dashboard overrides for fixed page texts and photos. */
+  pageTexts: "/page-texts",
   seo: (pageKey: string) => `/seo/${encodeURIComponent(pageKey)}`,
   /** CMS legal pages — `privacy` | `terms`. */
   legal: (slug: string) => `/legal/${encodeURIComponent(slug)}`,

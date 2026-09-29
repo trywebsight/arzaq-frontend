@@ -7,13 +7,22 @@ import { Magnetic, Reveal, StaggerGroup } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { BUYER_FEATURES } from "@/features/services/content";
 import { FeaturePoint } from "@/features/services/feature-point";
-import { assets } from "@/lib/assets";
+import { assets, type ImageAsset } from "@/lib/assets";
 import { cn } from "@/lib/utils";
 
 /**
  * Centered “For Buyers” band: heading, CTA, villa image, then 3 feature points.
  */
-export function BuyersSection({ className }: { className?: string }) {
+/**
+ * @param image - Photo uploaded in the dashboard; falls back to the bundled one.
+ */
+export function BuyersSection({
+  className,
+  image,
+}: {
+  className?: string;
+  image?: ImageAsset | null;
+}) {
   const t = useTranslations("ServicesPage.buyers");
 
   return (
@@ -44,7 +53,7 @@ export function BuyersSection({ className }: { className?: string }) {
       <Reveal as="div" from="bottom" distance={24} delay={0.08}>
         <div className="relative aspect-video w-full overflow-hidden rounded-card md:aspect-21/9">
           <SmartImage
-            src={assets.propertyVillaPool.src}
+            src={(image ?? assets.propertyVillaPool).src}
             alt={t("imageAlt")}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 90rem"

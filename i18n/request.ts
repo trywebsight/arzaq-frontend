@@ -1,5 +1,8 @@
 import { getRequestConfig } from "next-intl/server";
 
+import { applyTextOverrides } from "@/features/page-texts/merge";
+import { getPageTexts } from "@/features/page-texts/server";
+
 /**
  * The single locale this site ships in.
  *
@@ -20,7 +23,11 @@ export const formattingLocale = "ar-KW";
 
 export default getRequestConfig(async () => ({
   locale,
-  messages: (await import("../messages/ar.json")).default,
+  // Texts edited in the dashboard ("نصوص الصفحات") override the bundled defaults.
+  messages: applyTextOverrides(
+    (await import("../messages/ar.json")).default,
+    (await getPageTexts()).texts,
+  ),
   // Kuwaiti convention: Western digits everywhere, so never switch the
   // numbering system to arab-indic.
   formats: {
