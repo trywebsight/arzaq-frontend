@@ -519,7 +519,10 @@ export function PropertyContactCard({
           </a>
         </Button>
         <Button asChild variant="ghost" size="pill" className="w-full">
-          <HapticLink href={ROUTES.contact} haptics={false}>
+          <HapticLink
+            href={`${ROUTES.contact}?property=${encodeURIComponent(property.slug)}`}
+            haptics={false}
+          >
             {t("cta.form")}
           </HapticLink>
         </Button>

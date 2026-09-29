@@ -25,20 +25,21 @@ type PropertyPageProps = {
 };
 
 /**
- * Resolve a listing for metadata / JSON-LD. Returns `null` when missing or
- * when a forced mock state would fight the hydrate.
+ * Resolve the property for metadata / JSON-LD. `null` means the API answered
+ * "not found"; `undefined` means it could not be checked (forced mock state
+ * or API unavailable), which must never produce a 404.
  */
 async function loadProperty(
   slug: string,
   searchParams: Record<string, string | string[] | undefined>,
 ) {
   if (!shouldPrefetch(mockStateFromSearchParams(searchParams))) {
-    return null;
+    return undefined;
   }
   try {
     return await fetchProperty(slug);
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -46,20 +47,21 @@ export async function generateMetadata({
   params,
   searchParams,
 }: PropertyPageProps): Promise<Metadata> {
-  const [{ slug }, search, tMeta, tDetail] = await Promise.all([
+  const [{ slug }, search, tMeta] = await Promise.all([
     params,
     searchParams,
     getTranslations("Meta"),
-    getTranslations("PropertyDetail"),
   ]);
 
   const property = await loadProperty(slug, search);
 
-  if (!property) {
-    return {
-      title: tDetail("meta.notFoundTitle"),
-      robots: { index: false, follow: false },
-    };
+  // The API answered "not found": render the not-found page (Next adds noindex).
+  if (property === null) notFound();
+
+  // Could not check (API unreachable or forced mock state): keep default,
+  // indexable metadata so an outage never de-indexes real pages.
+  if (property === undefined) {
+    return { title: tMeta("siteName") };
   }
 
   return buildSeoPageMetadata(`properties:${property.slug}`, {

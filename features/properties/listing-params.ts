@@ -16,6 +16,8 @@ const PURPOSES = new Set<PropertyPurpose>(["sale", "rent", "exchange"]);
 /** Type ids are dashboard ids (live) or readable keys (fixtures). */
 const KIND_PATTERN = /^[a-z0-9-]{1,40}$/i;
 const GOVERNORATE_SET = new Set<string>(GOVERNORATES);
+/** Matches the backend's `search` validation limit. */
+const MAX_SEARCH_LENGTH = 120;
 const PRICE_IDS = new Set(PRICE_RANGES.map((range) => range.id));
 
 export type ListingParams = {
@@ -24,6 +26,8 @@ export type ListingParams = {
   /** Governorate id stored in the `city` search param for shareable URLs. */
   city?: GovernorateId;
   price?: PriceRangeId;
+  /** Free-text search (`?q=`): area, type, description or property number. */
+  search?: string;
   page: number;
   /** Preserved across filter navigation so `?mockState=` keeps working. */
   mockState?: string;
@@ -53,6 +57,7 @@ export function parseListingParams(
   const cityRaw = first(searchParams?.city);
   const priceRaw = first(searchParams?.price);
   const pageRaw = first(searchParams?.page);
+  const searchRaw = first(searchParams?.q)?.trim().slice(0, MAX_SEARCH_LENGTH);
   const mockStateRaw = first(searchParams?.mockState);
 
   return {
@@ -72,6 +77,7 @@ export function parseListingParams(
       priceRaw && PRICE_IDS.has(priceRaw as PriceRangeId)
         ? (priceRaw as PriceRangeId)
         : undefined,
+    search: searchRaw || undefined,
     page: parsePage(pageRaw),
     mockState: mockStateRaw,
   };
@@ -91,6 +97,7 @@ export function listingToPropertyFilters(
     governorate: params.city,
     minPrice: range?.min,
     maxPrice: range?.max ?? undefined,
+    search: params.search,
   };
 }
 
@@ -99,6 +106,7 @@ export type ListingParamPatch = Partial<{
   kind: PropertyKind | typeof FILTER_ALL;
   city: GovernorateId | typeof FILTER_ALL;
   price: PriceRangeId | typeof FILTER_ALL;
+  search: string | typeof FILTER_ALL;
   page: number;
 }>;
 
@@ -135,13 +143,20 @@ export function buildListingHref(
         : patch.price !== undefined
           ? patch.price
           : current.price,
+    search:
+      patch.search === FILTER_ALL
+        ? undefined
+        : patch.search !== undefined
+          ? patch.search.trim().slice(0, MAX_SEARCH_LENGTH) || undefined
+          : current.search,
     page:
       patch.page !== undefined
         ? Math.max(1, patch.page)
         : "purpose" in patch ||
             "kind" in patch ||
             "city" in patch ||
-            "price" in patch
+            "price" in patch ||
+            "search" in patch
           ? 1
           : current.page,
   };
@@ -151,6 +166,7 @@ export function buildListingHref(
   if (next.kind) qs.set("kind", next.kind);
   if (next.city) qs.set("city", next.city);
   if (next.price) qs.set("price", next.price);
+  if (next.search) qs.set("q", next.search);
   if (next.page > 1) qs.set("page", String(next.page));
   if (current.mockState) qs.set("mockState", current.mockState);
 

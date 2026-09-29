@@ -11,7 +11,16 @@ import { cn } from "@/lib/utils";
 /**
  * Contact intro + form: two columns on md+, stacked intro-then-form on mobile.
  */
-export function ContactSection({ className }: { className?: string }) {
+/**
+ * @param initialMessage - Forwarded to the form, e.g. a property enquiry.
+ */
+export function ContactSection({
+  className,
+  initialMessage,
+}: {
+  className?: string;
+  initialMessage?: string;
+}) {
   const t = useTranslations("ContactPage.contact");
 
   return (
@@ -44,7 +53,7 @@ export function ContactSection({ className }: { className?: string }) {
         </div>
 
         <Reveal as="div" from="bottom" distance={24} delay={0.1}>
-          <ContactForm />
+          <ContactForm initialMessage={initialMessage} />
         </Reveal>
       </div>
     </Section>

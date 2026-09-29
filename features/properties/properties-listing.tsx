@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight, ListFilter, XIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, ListFilter, Search, XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -46,6 +46,7 @@ import {
   SelectValue,
 } from "@/components/motion/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetClose,
@@ -71,7 +72,7 @@ const SELECT_TRIGGER_CLASS =
   "h-11 w-full min-w-0 rounded-full border-transparent bg-secondary px-4 text-sm font-medium text-ink shadow-none hover:bg-secondary/80";
 
 function countActiveFilters(params: ListingParams): number {
-  return [params.purpose, params.kind, params.city, params.price].filter(
+  return [params.purpose, params.kind, params.city, params.price, params.search].filter(
     Boolean,
   ).length;
 }
@@ -117,6 +118,7 @@ export function PropertiesListing({ params }: PropertiesListingProps) {
         kind: FILTER_ALL,
         city: FILTER_ALL,
         price: FILTER_ALL,
+        search: FILTER_ALL,
         page: 1,
       }),
       { scroll: false },
@@ -334,6 +336,66 @@ export function PropertiesListing({ params }: PropertiesListingProps) {
   );
 }
 
+/**
+ * Free-text search. Submits on Enter or the search button so typing does not
+ * fire a request per keystroke; clearing resets the results.
+ */
+function PropertySearch({
+  value,
+  onSearch,
+}: {
+  value: string;
+  onSearch: (search: string) => void;
+}) {
+  const t = useTranslations("PropertiesPage.filters.search");
+  const [draft, setDraft] = useState(value);
+
+  return (
+    <form
+      role="search"
+      className="relative"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSearch(draft.trim());
+      }}
+    >
+      <label htmlFor="properties-search" className="sr-only">
+        {t("label")}
+      </label>
+      <Input
+        id="properties-search"
+        type="search"
+        value={draft}
+        maxLength={120}
+        enterKeyHint="search"
+        placeholder={t("placeholder")}
+        onChange={(event) => setDraft(event.target.value)}
+        className="h-12 rounded-full border-transparent bg-secondary ps-12 pe-12 text-sm shadow-none"
+      />
+      <button
+        type="submit"
+        aria-label={t("submit")}
+        className="absolute inset-y-0 start-0 flex w-12 items-center justify-center text-ink-muted hover:text-ink"
+      >
+        <Search className="size-4.5" aria-hidden="true" />
+      </button>
+      {value || draft ? (
+        <button
+          type="button"
+          aria-label={t("clear")}
+          onClick={() => {
+            setDraft("");
+            onSearch("");
+          }}
+          className="absolute inset-y-0 end-0 flex w-12 items-center justify-center text-ink-muted hover:text-ink"
+        >
+          <XIcon className="size-4" aria-hidden="true" />
+        </button>
+      ) : null}
+    </form>
+  );
+}
+
 function PropertyFilterControls({
   params,
   onNavigate,
@@ -354,6 +416,11 @@ function PropertyFilterControls({
 
   return (
     <div className="flex flex-col gap-6">
+      <PropertySearch
+        key={params.search ?? ""}
+        value={params.search ?? ""}
+        onSearch={(search) => onNavigate({ search: search || FILTER_ALL })}
+      />
       <div
         className={cn(
           "grid gap-3",

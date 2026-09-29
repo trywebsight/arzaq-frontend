@@ -52,7 +52,16 @@ function rejectedFields(error: unknown): RejectableField[] {
  * Contact form: name + email row, phone (country + national), message, submit.
  * Validates with Zod + libphonenumber-js; mock-succeeds via `submitContact`.
  */
-export function ContactForm({ className }: { className?: string }) {
+/**
+ * @param initialMessage - Pre-filled message, e.g. an enquiry about a specific property.
+ */
+export function ContactForm({
+  className,
+  initialMessage = "",
+}: {
+  className?: string;
+  initialMessage?: string;
+}) {
   const t = useTranslations("ContactPage.form");
   const [succeeded, setSucceeded] = React.useState(false);
 
@@ -75,7 +84,7 @@ export function ContactForm({ className }: { className?: string }) {
       email: "",
       country: DEFAULT_PHONE_COUNTRY,
       phone: "",
-      message: "",
+      message: initialMessage,
     },
     mode: "onBlur",
   });

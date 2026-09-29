@@ -29,20 +29,21 @@ type ArticlePageProps = {
 const RELATED_PREFETCH_LIMIT = 4;
 
 /**
- * Resolve a post for metadata / JSON-LD. Returns `null` when missing or
- * when a forced mock state would fight the hydrate.
+ * Resolve the post for metadata / JSON-LD. `null` means the API answered
+ * "not found"; `undefined` means it could not be checked (forced mock state
+ * or API unavailable), which must never produce a 404.
  */
 async function loadPost(
   slug: string,
   searchParams: Record<string, string | string[] | undefined>,
 ) {
   if (!shouldPrefetch(mockStateFromSearchParams(searchParams))) {
-    return null;
+    return undefined;
   }
   try {
     return await fetchPost(slug);
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -50,20 +51,21 @@ export async function generateMetadata({
   params,
   searchParams,
 }: ArticlePageProps): Promise<Metadata> {
-  const [{ slug }, search, tMeta, tArticle] = await Promise.all([
+  const [{ slug }, search, tMeta] = await Promise.all([
     params,
     searchParams,
     getTranslations("Meta"),
-    getTranslations("ArticlePage"),
   ]);
 
   const post = await loadPost(slug, search);
 
-  if (!post) {
-    return {
-      title: tArticle("meta.notFoundTitle"),
-      robots: { index: false, follow: false },
-    };
+  // The API answered "not found": render the not-found page (Next adds noindex).
+  if (post === null) notFound();
+
+  // Could not check (API unreachable or forced mock state): keep default,
+  // indexable metadata so an outage never de-indexes real pages.
+  if (post === undefined) {
+    return { title: tMeta("siteName") };
   }
 
   return buildSeoPageMetadata(`posts:${post.slug}`, {
